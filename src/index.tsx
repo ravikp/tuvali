@@ -39,8 +39,20 @@ const Verifier = NativeModules.Verifier
       }
     );
 
+const MpassSmartshare = NativeModules.MpassSmartshare
+  ? NativeModules.MpassSmartshare
+  : new Proxy(
+      {},
+      {
+        get() {
+          throw new Error(LINKING_ERROR);
+        },
+      }
+    );
+
 export default {
   Openid4vpBle,
   Wallet,
   Verifier,
+  MpassSmartshare,
 };
