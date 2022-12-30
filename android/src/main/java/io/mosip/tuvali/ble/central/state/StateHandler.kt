@@ -128,7 +128,7 @@ class StateHandler(
       }
       IMessage.CentralStates.WRITE.ordinal -> {
         val writeMessage = msg.obj as WriteMessage
-        Log.d(logTag, "starting write to ${writeMessage.charUUID}")
+//        Log.d(logTag, "starting write to ${writeMessage.charUUID}")
 
         controller.write(writeMessage)
         currentState = States.Writing

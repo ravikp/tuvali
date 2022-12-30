@@ -44,7 +44,11 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     val service = gattServer.getService(serviceUUID)
     val characteristic = service.getCharacteristic(charUUID)
     characteristic.value = data
-    return gattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, false)
+    return gattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, true)
+  }
+
+  override fun onNotificationSent(device: BluetoothDevice?, status: Int) {
+    Log.d(logTag, "onNotificationSent: status: $status")
   }
 
   override fun onServiceAdded(status: Int, service: BluetoothGattService?) {
@@ -60,7 +64,7 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
       onDeviceNotConnectedCallback(status, newState)
       null
     }
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && bluetoothDevice != null) {
       gattServer.readPhy(bluetoothDevice)
       gattServer.setPreferredPhy(bluetoothDevice, 2, 2, 0)
       gattServer.readPhy(bluetoothDevice)

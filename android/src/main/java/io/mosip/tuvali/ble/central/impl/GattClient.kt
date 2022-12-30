@@ -40,7 +40,7 @@ class GattClient(var context: Context) {
       Log.i(logTag, "Status of write is $status for ${characteristic?.uuid}, tempWriteCounterForCharUUID: ${tempCounterMap[characteristic?.uuid]}")
 
       if(status != GATT_SUCCESS) {
-        Log.i(logTag, "\"Failed to send message to peripheral")
+        Log.i(logTag, "Failed to send message to peripheral")
 
         peripheral?.let {
           characteristic?.uuid?.let {
@@ -182,7 +182,7 @@ class GattClient(var context: Context) {
     if(bluetoothGatt == null){
         return onFailed(device, charUUID, GATT_FAILURE)
     }
-    Log.i(logTag, "Initiating write to peripheral char: $charUUID")
+//    Log.i(logTag, "Initiating write to peripheral char: $charUUID")
 
     val service = bluetoothGatt?.getService(serviceUuid)
     val writeChar = service?.getCharacteristic(charUUID)
