@@ -44,7 +44,11 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     val service = gattServer.getService(serviceUUID)
     val characteristic = service.getCharacteristic(charUUID)
     characteristic.value = data
-    return gattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, false)
+    return gattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, true)
+  }
+
+  override fun onNotificationSent(device: BluetoothDevice?, status: Int) {
+    Log.d(logTag, "onNotificationSent: status: $status")
   }
 
   override fun onServiceAdded(status: Int, service: BluetoothGattService?) {

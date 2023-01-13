@@ -14,8 +14,6 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   Handler(looper) {
   private lateinit var retryChunker: RetryChunker
   private val logTag = "TransferHandler"
-  private var chunkCounter = 0;
-  private var isRetryFrame = false;
 
   enum class States {
     UnInitialised,
@@ -65,7 +63,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
       }
       IMessage.TransferMessageTypes.INIT_RESPONSE_CHUNK_TRANSFER.ordinal -> {
         currentState = States.ResponseWritePending
-        sendResponseChunk()
+        sendAllResponseChunksWithoutAcknowledgement()
       }
       IMessage.TransferMessageTypes.READ_TRANSMISSION_REPORT.ordinal -> {
         currentState = States.WaitingForTransferReport
@@ -77,17 +75,9 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
         handleTransmissionReport(handleTransmissionReportMessage.report)
       }
       IMessage.TransferMessageTypes.RESPONSE_CHUNK_WRITE_SUCCESS.ordinal -> {
-        if(isRetryFrame) {
-          sendRetryResponseChunk()
-        } else {
-          sendResponseChunk()
-          chunkCounter++
-        }
       }
       IMessage.TransferMessageTypes.RESPONSE_CHUNK_WRITE_FAILURE.ordinal -> {
-        val responseChunkWriteFailureMessage = msg.obj as ResponseChunkWriteFailureMessage
-        this.sendMessage(ResponseTransferFailureMessage("chunk write failed with err: ${responseChunkWriteFailureMessage.err}"))
-      }
+       }
       IMessage.TransferMessageTypes.RESPONSE_TRANSFER_COMPLETE.ordinal -> {
         // TODO: Let higher level know
         currentState = States.TransferComplete
@@ -101,19 +91,20 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
       }
       IMessage.TransferMessageTypes.INIT_RETRY_TRANSFER.ordinal -> {
         val initRetryTransferMessage = msg.obj as InitRetryTransferMessage
-        isRetryFrame = true
         retryChunker = RetryChunker(chunker!!, initRetryTransferMessage.missedSequences)
-        sendRetryResponseChunk()
+        sendRetryResponseChunkWithoutAcknowledgement()
       }
     }
   }
 
-  private fun sendRetryResponseChunk() {
-    if (retryChunker.isComplete()) {
-      this.sendMessage(ReadTransmissionReportMessage())
-    } else {
+  private fun sendRetryResponseChunkWithoutAcknowledgement() {
+    while (!retryChunker.isComplete()) {
+      Log.d(logTag, "sendAllRetryResponseChunkWithoutAck: writing ${retryChunker.getSequenceCounter()} out of ${retryChunker.totalMissingChunks()}")
       writeResponseChunk(retryChunker.next())
+      Thread.sleep(6)
     }
+    Log.d(logTag, "sendAllRetryResponseChunkWithoutAck: failure frame response chunk transfer complete, totalMissing: ${retryChunker.totalMissingChunks()}")
+    this.sendMessage(ReadTransmissionReportMessage())
   }
 
   private fun handleTransmissionReport(report: TransferReport) {
@@ -121,7 +112,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
       currentState = States.TransferVerified
       transferListener.onResponseSent()
       Log.d(logTag, "handleMessage: Successfully transferred vc in ${System.currentTimeMillis() - responseStartTimeInMillis}ms")
-    } else if(report.type == TransferReport.ReportType.MISSING_CHUNKS && report.missingSequences != null && !isRetryFrame) {
+    } else if(report.type == TransferReport.ReportType.MISSING_CHUNKS && report.missingSequences != null ) {
       currentState = States.PartiallyTransferred
       this.sendMessage(InitRetryTransferMessage(report.missingSequences))
     } else {
@@ -133,18 +124,18 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
     central.write(serviceUUID, GattService.SEMAPHORE_CHAR_UUID, byteArrayOf(Semaphore.SemaphoreMarker.RequestReport.ordinal.toByte()))
   }
 
-  private fun sendResponseChunk() {
-    if (chunker?.isComplete() == true) {
-      this.sendMessage(ResponseTransferCompleteMessage())
-      return
+  private fun sendAllResponseChunksWithoutAcknowledgement() {
+    while (chunker?.isComplete() == false) {
+      val chunkArray = chunker?.next()
+      if (chunkArray != null) {
+        Log.d(logTag, "sequenceNumber: ${Util.twoBytesToIntBigEndian(chunkArray.copyOfRange(0,2))}")
+        writeResponseChunk(chunkArray)
+      }
+      Thread.sleep(6)
     }
-
-    val chunkArray = chunker?.next()
-    if (chunkArray != null) {
-      Log.d(logTag, "sequenceNumber: ${Util.twoBytesToIntBigEndian(chunkArray.copyOfRange(0,2))}, chunk sha256: ${Util.getSha256(chunkArray)}")
-      writeResponseChunk(chunkArray)
-    }
+    this.sendMessage(ResponseTransferCompleteMessage())
   }
+
 
   private fun writeResponseChunk(chunkArray: ByteArray) {
     central.write(
@@ -174,9 +165,5 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
       GattService.RESPONSE_SIZE_CHAR_UUID,
       "$size".toByteArray()
     )
-  }
-
-  fun getCurrentState(): States {
-    return currentState
   }
 }

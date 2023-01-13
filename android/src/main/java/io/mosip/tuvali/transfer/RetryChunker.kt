@@ -17,7 +17,13 @@ class RetryChunker(private val chunker: Chunker, private val missedSequences: In
     return chunker.chunkBySequenceNumber(missedSeqNo)
   }
 
-  fun isComplete(): Boolean {
-    return seqCounter == missedSequences.size - 1
+  fun totalMissingChunks(): Int {
+    return missedSequences.size
   }
+
+  fun isComplete(): Boolean {
+    return seqCounter == missedSequences.size
+  }
+
+  fun getSequenceCounter() : Int = seqCounter
 }
