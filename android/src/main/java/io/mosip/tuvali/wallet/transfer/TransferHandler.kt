@@ -101,7 +101,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
     while (!retryChunker.isComplete()) {
       Log.d(logTag, "sendAllRetryResponseChunkWithoutAck: writing ${retryChunker.getSequenceCounter()} out of ${retryChunker.totalMissingChunks()}")
       writeResponseChunk(retryChunker.next())
-      Thread.sleep(6)
+      sleepRealTime(DELAY_TIME_MILLI_SECS)
     }
     Log.d(logTag, "sendAllRetryResponseChunkWithoutAck: failure frame response chunk transfer complete, totalMissing: ${retryChunker.totalMissingChunks()}")
     this.sendMessage(ReadTransmissionReportMessage())
@@ -131,9 +131,17 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
         Log.d(logTag, "sequenceNumber: ${Util.twoBytesToIntBigEndian(chunkArray.copyOfRange(0,2))}")
         writeResponseChunk(chunkArray)
       }
-      Thread.sleep(6)
+      sleepRealTime(DELAY_TIME_MILLI_SECS)
     }
     this.sendMessage(ResponseTransferCompleteMessage())
+  }
+
+  private fun sleepRealTime(sleepInMilliSecs: Long) {
+    val futureTimeInNanoSecs = System.nanoTime() + (sleepInMilliSecs * 1_000_000)
+    while (true) {
+      if (System.nanoTime() > futureTimeInNanoSecs)
+        break
+    }
   }
 
 
@@ -165,5 +173,10 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
       GattService.RESPONSE_SIZE_CHAR_UUID,
       "$size".toByteArray()
     )
+  }
+
+  companion object {
+    //TODO: find the optimal value to sleep that works across devices
+    private const val DELAY_TIME_MILLI_SECS  = 36L
   }
 }
