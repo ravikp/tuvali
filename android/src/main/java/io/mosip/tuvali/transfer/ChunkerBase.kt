@@ -5,9 +5,9 @@ import kotlin.math.ceil
 const val DEFAULT_CHUNK_SIZE = 185
 
 open class ChunkerBase(mtuSize: Int = DEFAULT_CHUNK_SIZE) {
-  private val seqNumberReservedByteSize = 2
+  private val seqIndexReservedByteSize = 2
   private val mtuReservedByteSize = 2
-  val chunkMetaSize = seqNumberReservedByteSize + mtuReservedByteSize
+  val chunkMetaSize = seqIndexReservedByteSize + mtuReservedByteSize
   val effectivePayloadSize = mtuSize - chunkMetaSize
 
   fun getTotalChunkCount(dataSize: Int): Double {
