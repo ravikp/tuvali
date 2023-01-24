@@ -14,6 +14,7 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
   private var bluetoothDevice: BluetoothDevice? = null
 
   private lateinit var onServiceAddedCallback: (Int) -> Unit
+  private lateinit var onMTUChangedCallback: (Int) -> Unit
   private lateinit var onDeviceConnectedCallback: (Int, Int) -> Unit
   private lateinit var onDeviceNotConnectedCallback: (Int, Int) -> Unit
   private lateinit var onReceivedWriteCallback: (BluetoothGattCharacteristic?, ByteArray?) -> Unit
@@ -22,11 +23,13 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
   fun start(
     onDeviceConnected: (Int, Int) -> Unit,
     onDeviceNotConnected: (Int, Int) -> Unit,
-    onReceivedWrite: (BluetoothGattCharacteristic?, ByteArray?) -> Unit
+    onReceivedWrite: (BluetoothGattCharacteristic?, ByteArray?) -> Unit,
+    onMTUChanged: (Int)  -> Unit
   ) {
     onDeviceConnectedCallback = onDeviceConnected
     onDeviceNotConnectedCallback = onDeviceNotConnected
     onReceivedWriteCallback = onReceivedWrite
+    onMTUChangedCallback = onMTUChanged
     val bluetoothManager: BluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     gattServer = bluetoothManager.openGattServer(context, this@GattServer)
   }
@@ -47,6 +50,11 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     val characteristic = service.getCharacteristic(charUUID)
     characteristic.value = data
     return gattServer.notifyCharacteristicChanged(bluetoothDevice, characteristic, false)
+  }
+
+  override fun onMtuChanged(device: BluetoothDevice?, mtu: Int) {
+    Log.d(logTag, "onMtuChanged: mtu: $mtu, device: $device")
+    onMTUChangedCallback(mtu)
   }
 
   override fun onServiceAdded(status: Int, service: BluetoothGattService?) {

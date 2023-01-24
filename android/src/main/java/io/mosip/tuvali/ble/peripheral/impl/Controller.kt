@@ -16,7 +16,7 @@ class Controller(val context: Context) {
 
   fun setupGattService(gattServiceMessage: SetupGattServiceMessage) {
     gattServer = GattServer(context)
-    gattServer.start(this::onDeviceConnected, this::onDeviceNotConnected, this::onReceivedWrite)
+    gattServer.start(this::onDeviceConnected, this::onDeviceNotConnected, this::onReceivedWrite, this::onMTUChanged)
     gattServer.addService(gattServiceMessage.service, this::onServiceAdded)
   }
 
@@ -71,6 +71,10 @@ class Controller(val context: Context) {
   private fun onReceivedWrite(characteristic: BluetoothGattCharacteristic?, value: ByteArray?) {
     val receivedWriteMessage = ReceivedWriteMessage(characteristic, value)
     messageSender.sendMessage(receivedWriteMessage)
+  }
+  private fun onMTUChanged(mtu: Int) {
+    val mtuChangedMessage = MtuChangedMessage(mtu)
+    messageSender.sendMessage(mtuChangedMessage)
   }
 
   fun closeServer() {

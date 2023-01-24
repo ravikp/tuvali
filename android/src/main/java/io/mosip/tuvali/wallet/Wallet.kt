@@ -45,7 +45,8 @@ class Wallet(
     HandlerThread("TransferHandlerThread", Process.THREAD_PRIORITY_DEFAULT)
 
   private var central: Central
-  private val maxMTU = 517
+  private val maxMTU = 1340
+  private var negotiatedMTU  = 23
 
   private enum class CentralCallbacks {
     CONNECTION_ESTABLISHED,
@@ -148,6 +149,7 @@ class Wallet(
 
   override fun onRequestMTUSuccess(mtu: Int) {
     Log.d(logTag, "onRequestMTUSuccess")
+    negotiatedMTU = mtu
     //TODO: Can we pass this MTU value to chunker, would this callback always come?
     val connectionEstablishedCallBack = callbacks[CentralCallbacks.CONNECTION_ESTABLISHED]
     central.subscribe(Verifier.SERVICE_UUID, GattService.CONNECTION_STATUS_CHANGE_CHAR_UUID)
@@ -161,6 +163,14 @@ class Wallet(
 
   override fun onRequestMTUFailure(errorCode: Int) {
     //TODO: Handle onRequest MTU failure
+    val connectionEstablishedCallBack = callbacks[CentralCallbacks.CONNECTION_ESTABLISHED]
+
+    central.subscribe(Verifier.SERVICE_UUID, GattService.CONNECTION_STATUS_CHANGE_CHAR_UUID)
+
+    connectionEstablishedCallBack?.let {
+      it()
+      callbacks.remove(CentralCallbacks.CONNECTION_ESTABLISHED)
+    }
   }
 
   override fun onReadSuccess(charUUID: UUID, value: ByteArray?) {
@@ -287,7 +297,7 @@ class Wallet(
     val encryptedData = secretsTranslator?.encryptToSend(compressedBytes)
     if (encryptedData != null) {
       //Log.d(logTag, "encryptedData size: ${encryptedData.size}, sha256: ${Util.getSha256(encryptedData)}")
-      transferHandler.sendMessage(InitResponseTransferMessage(encryptedData))
+      transferHandler.sendMessage(InitResponseTransferMessage(encryptedData, negotiatedMTU))
     } else {
       Log.e(logTag, "failed to encrypt data with size: ${dataInBytes.size} and compressed size: ${compressedBytes?.size}")
     }

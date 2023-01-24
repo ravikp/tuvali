@@ -36,6 +36,7 @@ class Verifier(
   private var peripheral: Peripheral
   private var transferHandler: TransferHandler
   private val handlerThread = HandlerThread("TransferHandlerThread", THREAD_PRIORITY_DEFAULT)
+  private var negotiatedMTUSize = 23
 
   //TODO: Update UUIDs as per specification
   companion object {
@@ -162,7 +163,7 @@ class Verifier(
           Log.d(logTag, "received response size on characteristic value: ${String(value)}")
           val responseSize: Int = String(value).toInt()
           Log.d(logTag, "received response size on characteristic: $responseSize")
-          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSize)
+          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSize, negotiatedMTUSize)
           transferHandler.sendMessage(responseSizeReadSuccessMessage)
         }
       }
@@ -200,6 +201,11 @@ class Verifier(
       it()
       callbacks.remove(PeripheralCallbacks.ON_DESTROY_SUCCESS_CALLBACK)
     }
+  }
+
+  override fun onMTUChanged(mtu: Int) {
+    Log.d(logTag, "onMTUChanged: $mtu bytes")
+    negotiatedMTUSize = mtu
   }
 
 

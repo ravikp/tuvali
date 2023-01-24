@@ -14,6 +14,7 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
 
   init {
     Log.d(logTag, "expected total chunk size: $totalSize")
+    Log.d(logTag, "Effective MTU size : $effectiveMTUSize")
     if (totalSize == 0) {
       throw CorruptedChunkReceivedException(0, 0, 0)
     }
@@ -49,7 +50,7 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
   ) = !CheckValue.verify(data, crc)
 
 
-  private fun chunkSizeGreaterThanMtuSize(chunkData: ByteArray) = chunkData.size > mtuSize
+  private fun chunkSizeGreaterThanMtuSize(chunkData: ByteArray) = chunkData.size > effectiveMTUSize
 
   fun isComplete(): Boolean {
     return chunkReceivedMarker.none { it != chunkReceivedMarkerByte }

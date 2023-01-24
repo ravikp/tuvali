@@ -16,6 +16,7 @@ class StateHandler(
 ) : Handler(looper), IMessageSender {
   private val logTag = "CentralHandlerThread"
   private var currentState: States = States.Init
+  private var negotiateMTURetryCount : Int = 2
 
   //TODO: Add explicit ordinal value for below enum
   enum class States {
@@ -138,9 +139,28 @@ class StateHandler(
       }
       IMessage.CentralStates.REQUEST_MTU.ordinal -> {
         val requestMTUMessage = msg.obj as RequestMTUMessage
-        Log.d(logTag, "request mtu change to ${requestMTUMessage.mtu}")
+        Log.d(logTag, "Requesting MTU: ${requestMTUMessage.mtu} bytes")
         controller.requestMTU(requestMTUMessage.mtu)
         currentState = States.RequestingMTU
+        this.sendMessageDelayed(NegotiateAndRequestMTU(requestMTUMessage.mtu - 200),30)
+      }
+      IMessage.CentralStates.REQUEST_AND_NEGOTIATE_MTU.ordinal -> {
+        if(currentState == States.Connected){
+          Log.i(logTag, "Successfully negotiated MTU")
+        }
+        if(negotiateMTURetryCount == 0 && currentState == States.RequestingMTU){
+          Log.e(logTag, "MTU negotiation unsuccessful. Current MTU size: 23 bytes")
+          this.sendMessage(RequestMTUFailureMessage(0))
+        }
+        if(currentState == States.RequestingMTU  && negotiateMTURetryCount > 0) {
+          val negotiateAndRequestMTU = msg.obj as NegotiateAndRequestMTU
+          Log.d(logTag, "Requesting MTU with lower value: ${negotiateAndRequestMTU.mtuSize} bytes!!!")
+          controller.requestMTU(negotiateAndRequestMTU.mtuSize)
+          negotiateMTURetryCount--
+          currentState = States.RequestingMTU
+          this.sendMessageDelayed(NegotiateAndRequestMTU(negotiateAndRequestMTU.mtuSize - 200), 30)
+        }
+
       }
       IMessage.CentralStates.REQUEST_MTU_SUCCESS.ordinal -> {
         val requestMTUSuccessMessage = msg.obj as RequestMTUSuccessMessage
@@ -265,6 +285,7 @@ class StateHandler(
   }
 
   override fun sendMessageDelayed(msg: IMessage, delay: Long) {
+    Log.d(logTag, "Inside send message delayed with message: ${msg.commandType}. Value: $msg")
     val message = this.obtainMessage()
     message.what = msg.commandType.ordinal
     message.obj = msg

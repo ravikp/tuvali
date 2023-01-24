@@ -17,6 +17,7 @@ abstract class IMessage(val commandType: CentralStates) {
     DISCOVER_SERVICES_FAILURE,
 
     REQUEST_MTU,
+    REQUEST_AND_NEGOTIATE_MTU,
     REQUEST_MTU_SUCCESS,
     REQUEST_MTU_FAILURE,
 
