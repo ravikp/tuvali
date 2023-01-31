@@ -3,7 +3,7 @@ import Foundation
 class Chunker {
 
     private var logTag = "Chunker"
-    private var chunksReadCounter: Int = 0
+    var chunksReadCounter: Int = 0
     private var preSlicedChunks: [Data] = []
     private var chunkData: Data?
     private var mtuSize: Int = BLEConstants.DEFAULT_CHUNK_SIZE
@@ -107,7 +107,7 @@ class Chunker {
     func isComplete() -> Bool {
         let isComplete = chunksReadCounter > (totalChunkCount - 1)
         if isComplete {
-                print("isComplete: true, totalChunks: $totalChunkCount , chunkReadCounter(1-indexed): $chunksReadCounter")
+            print("isComplete: true, totalChunks: \(totalChunkCount) , chunkReadCounter(1-indexed): \(chunksReadCounter)")
         }
        return isComplete
     }

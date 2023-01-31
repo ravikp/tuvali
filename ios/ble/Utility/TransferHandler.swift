@@ -90,7 +90,8 @@ class TransferHandler {
     }
     private func requestTransmissionReport() {
         var notifyObj: Data
-        Central.shared.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.semaphoreCharacteristic, data: withUnsafeBytes(of: 1.littleEndian) { Data($0) })
+        Central.shared.writeWithoutResp(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.semaphoreCharacteristic, data: withUnsafeBytes(of: 1.littleEndian) { Data($0) })
+        print("transmission report requested")
         NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, queue: nil) { [unowned self] notification in
             print("Handling notification for \(notification.name.rawValue)")
             if let notifyObj = notification.userInfo?["report"] as? Data {
@@ -149,24 +150,15 @@ class TransferHandler {
     
     private func sendResponseChunk() {
         if let chunker = chunker {
-            if chunker.isComplete() {
-                print("Data send complete")
-                sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT))
-                return
-            }
-            
-            var done = false
-            while !done {
+            while !chunker.isComplete() {
                 let chunk = chunker.next()
-                if chunk.isEmpty {
-                    done = true
-                    sendMessage(message: imessage(msgType: .INIT_RESPONSE_CHUNK_TRANSFER, data: data, dataSize: data?.count))
-                }
-                else {
-                    Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk)
-                }
-                
+                print(">>> now here", chunker.chunksReadCounter)
+                Central.shared.writeWithoutResp(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk)
+                Thread.sleep(forTimeInterval: 0.020)
             }
+            sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT))
+        } else {
+                print("chunker is nil !")
         }
     }
 }
@@ -214,6 +206,7 @@ enum SemaphoreMarker: Int {
     case RequestReport = 1
     case Error = 2
 }
+
 
 
 

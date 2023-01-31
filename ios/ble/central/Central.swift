@@ -33,7 +33,10 @@ class Central: NSObject, CBCentralManagerDelegate {
         centralManager.scanForPeripherals(withServices: [Peripheral.SERVICE_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
         os_log("scanning happening ::::::::")
     }
-    
+
+    /**
+     * write(..) writes data on a charUUID without response
+     */
     func write(serviceUuid: CBUUID, charUUID: CBUUID, data: Data) {
         if let connectedPeripheral = connectedPeripheral {
             if connectedPeripheral.canSendWriteWithoutResponse {
@@ -41,15 +44,30 @@ class Central: NSObject, CBCentralManagerDelegate {
                     print("Did not find the characteristic to write")
                     return
                 }
+                // TODO: skip evaluating the MTU again
                 let mtu = connectedPeripheral.maximumWriteValueLength(for: .withResponse)
-                print("Write MTU: ", mtu)
-                print("Data count", data.count)
                 let bytesToCopy: size_t = min(mtu, data.count)
                 let messageData = Data(bytes: Array(data), count: bytesToCopy)
-                
                 connectedPeripheral.writeValue(messageData, for: characteristic, type: .withResponse)
             }
         }
     }
-}
 
+    /**
+     * writeWithoutResp(...) writes data on a charUUID without response
+     */
+    func writeWithoutResp(serviceUuid: CBUUID, charUUID: CBUUID, data: Data) {
+        if let connectedPeripheral = connectedPeripheral {
+            guard let characteristic = self.cbCharacteristics[charUUID.uuidString] else {
+                print("Did not find the characteristic to write")
+                return
+            }
+            // TODO: skip evaluating the MTU again
+            let mtu = connectedPeripheral.maximumWriteValueLength(for: .withResponse)
+            let bytesToCopy: size_t = min(mtu, data.count)
+            let messageData = Data(bytes: Array(data), count: bytesToCopy)
+            connectedPeripheral.writeValue(messageData, for: characteristic, type: .withoutResponse)
+            print("wrote some data without resp")
+        }
+    }
+}
