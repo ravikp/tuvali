@@ -95,7 +95,7 @@ class TransferHandler {
         NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, queue: nil) { [unowned self] notification in
             print("Handling notification for \(notification.name.rawValue)")
             if let notifyObj = notification.userInfo?["report"] as? Data {
-                sendMessage(message: imessage(msgType: .RESPONSE_TRANSFER_FAILED, data: notifyObj))
+                sendMessage(message: imessage(msgType: .HANDLE_TRANSMISSION_REPORT, data: notifyObj))
             } else {
                 print("weird reason!!")
             }
@@ -136,7 +136,7 @@ class TransferHandler {
         let decimalString = String(size)
         let d = decimalString.data(using: .utf8)
         print(d!)
-        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseSizeCharacteristic, data: d!)
+        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: d!)
         NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "RESPONSE_SIZE_WRITE_SUCCESS"), object: nil, queue: nil) { [unowned self] notification in
             print("Handling notification for \(notification.name.rawValue)")
             sendMessage(message: imessage(msgType: .RESPONSE_SIZE_WRITE_SUCCESS, data: data))

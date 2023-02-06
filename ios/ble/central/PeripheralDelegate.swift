@@ -54,14 +54,10 @@ extension Central: CBPeripheralDelegate {
             print("ts report is :::", report)
             // TODO: figure out why object isn't sent out across
             NotificationCenter.default.post(name: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, userInfo: ["report": report])
-        }
-
-        if characteristic.uuid == NetworkCharNums.VERIFICATION_STATUS_CHAR_UUID {
+        } else if characteristic.uuid == NetworkCharNums.VERIFICATION_STATUS_CHAR_UUID {
             let verificationStatus = characteristic.value as Data?
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.VERIFICATION_STATUS_RESPONSE.rawValue), object: nil, userInfo: ["status": verificationStatus])
-        }
-
-        if characteristic.uuid == NetworkCharNums.DISCONNECT_CHAR_UUID {
+        } else if characteristic.uuid == NetworkCharNums.DISCONNECT_CHAR_UUID {
             let connectionStatus = characteristic.value as Data?
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.DISCONNECT_STATUS_CHANGE.rawValue), object: nil, userInfo: ["connectionStatus": connectionStatus])
         }
@@ -74,11 +70,13 @@ extension Central: CBPeripheralDelegate {
 
         if characteristic.uuid == NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID {
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.EXCHANGE_RECEIVER_INFO.rawValue), object: nil)
-        }
-        if characteristic.uuid == NetworkCharNums.RESPONSE_SIZE_CHAR_UUID {
+        } else if characteristic.uuid == NetworkCharNums.RESPONSE_SIZE_CHAR_UUID {
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.RESPONSE_SIZE_WRITE_SUCCESS.rawValue), object: nil)
         } else if characteristic.uuid == NetworkCharNums.SUBMIT_RESPONSE_CHAR_UUID {
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.INIT_RESPONSE_CHUNK_TRANSFER.rawValue), object: nil)
+        } else if characteristic.uuid == NetworkCharNums.TRANSFER_REPORT_RESPONSE_CHAR_UUID {
+            let report = characteristic.value as Data?
+            NotificationCenter.default.post(name: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, userInfo: ["report": report])
         }
     }
 
