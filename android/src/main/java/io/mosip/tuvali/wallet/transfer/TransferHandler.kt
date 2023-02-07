@@ -7,6 +7,7 @@ import android.util.Log
 import io.mosip.tuvali.ble.central.Central
 import io.mosip.tuvali.transfer.*
 import io.mosip.tuvali.verifier.GattService
+import io.mosip.tuvali.verifier.UUIDConstants
 import io.mosip.tuvali.wallet.transfer.message.*
 import java.util.*
 
@@ -130,7 +131,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   }
 
   private fun requestTransmissionReport() {
-    central.write(serviceUUID, GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID, byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte()))
+    central.write(serviceUUID, UUIDConstants.TRANSFER_REPORT_REQUEST_CHAR_UUID, byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte()))
   }
 
   private fun sendResponseChunk() {
@@ -149,7 +150,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   private fun writeResponseChunk(chunkArray: ByteArray) {
     central.write(
       serviceUUID,
-      GattService.SUBMIT_RESPONSE_CHAR_UUID,
+      UUIDConstants.SUBMIT_RESPONSE_CHAR_UUID,
       chunkArray
     )
   }
@@ -171,7 +172,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   private fun sendResponseSize(size: Int) {
     central.write(
       serviceUUID,
-      GattService.RESPONSE_SIZE_CHAR_UUID,
+      UUIDConstants.RESPONSE_SIZE_CHAR_UUID,
       "$size".toByteArray()
     )
   }

@@ -39,10 +39,8 @@ class Verifier(
   private var transferHandler: TransferHandler
   private val handlerThread = HandlerThread("TransferHandlerThread", THREAD_PRIORITY_DEFAULT)
 
-  //TODO: Update UUIDs as per specification
+
   companion object {
-    val SERVICE_UUID: UUID = UUID.fromString("0000AB29-0000-1000-8000-00805f9b34fb")
-    val SCAN_RESPONSE_SERVICE_UUID: UUID = UUID.fromString("0000AB2A-0000-1000-8000-00805f9b34fb")
     const val DISCONNECT_STATUS = 1
   }
 
@@ -61,12 +59,12 @@ class Verifier(
     peripheral = Peripheral(context, this@Verifier)
     val gattService = GattService()
     peripheral.setupService(gattService.create())
-    transferHandler = TransferHandler(handlerThread.looper, peripheral, this@Verifier, SERVICE_UUID)
+    transferHandler = TransferHandler(handlerThread.looper, peripheral, this@Verifier, UUIDConstants.SERVICE_UUID)
   }
 
   fun stop(onDestroySuccessCallback: Callback) {
     callbacks[PeripheralCallbacks.ON_DESTROY_SUCCESS_CALLBACK] = onDestroySuccessCallback
-    peripheral.stop(SERVICE_UUID)
+    peripheral.stop(UUIDConstants.SERVICE_UUID)
     handlerThread.quitSafely()
   }
 
@@ -79,8 +77,8 @@ class Verifier(
   fun startAdvertisement(advIdentifier: String, successCallback: Callback) {
     callbacks[PeripheralCallbacks.ADV_SUCCESS_CALLBACK] = successCallback
     peripheral.start(
-      SERVICE_UUID,
-      SCAN_RESPONSE_SERVICE_UUID,
+      UUIDConstants.SERVICE_UUID,
+      UUIDConstants.SCAN_RESPONSE_SERVICE_UUID,
       getAdvPayload(advIdentifier),
       getScanRespPayload()
     )
@@ -93,10 +91,10 @@ class Verifier(
 
   fun notifyVerificationStatus(accepted: Boolean) {
     if(accepted) {
-      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
+      peripheral.sendData(UUIDConstants.SERVICE_UUID, UUIDConstants.VERIFICATION_STATUS_CHAR_UUID,
         byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.ACCEPTED.ordinal.toByte()))
     } else {
-      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
+      peripheral.sendData(UUIDConstants.SERVICE_UUID, UUIDConstants.VERIFICATION_STATUS_CHAR_UUID,
         byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.REJECTED.ordinal.toByte()))
     }
   }
@@ -116,12 +114,12 @@ class Verifier(
   }
 
   override fun sendDataOverNotification(charUUID: UUID, data: ByteArray) {
-    peripheral.sendData(SERVICE_UUID, charUUID, data)
+    peripheral.sendData(UUIDConstants.SERVICE_UUID, charUUID, data)
   }
 
   override fun onReceivedWrite(uuid: UUID, value: ByteArray?) {
     when (uuid) {
-      GattService.IDENTIFY_REQUEST_CHAR_UUID -> {
+      UUIDConstants.IDENTIFY_REQUEST_CHAR_UUID -> {
         value?.let {
           // Total size of identity char value will be 12 bytes IV + 32 bytes pub key
           if (value.size < 12 + 32) {
@@ -144,7 +142,7 @@ class Verifier(
           peripheral.stopAdvertisement()
         }
       }
-      GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
+      UUIDConstants.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
         value?.let {
           if (value.isEmpty()) {
             return
@@ -159,7 +157,7 @@ class Verifier(
           }
         }
       }
-      GattService.RESPONSE_SIZE_CHAR_UUID -> {
+      UUIDConstants.RESPONSE_SIZE_CHAR_UUID -> {
         value?.let {
           Log.d(logTag, "received response size on characteristic value: ${String(value)}")
           val responseSize: Int = String(value).toInt()
@@ -168,7 +166,7 @@ class Verifier(
           transferHandler.sendMessage(responseSizeReadSuccessMessage)
         }
       }
-      GattService.SUBMIT_RESPONSE_CHAR_UUID -> {
+      UUIDConstants.SUBMIT_RESPONSE_CHAR_UUID -> {
         if (value != null) {
           Log.d(logTag, "received response chunk on characteristic of size: ${value.size}")
           transferHandler.sendMessage(ResponseChunkReceivedMessage(value))
@@ -179,11 +177,11 @@ class Verifier(
 
   override fun onSendDataNotified(uuid: UUID, isSent: Boolean) {
     when (uuid) {
-      GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
+      UUIDConstants.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
         //TODO: Can re-send report if failed to send notification with exponential backoff
         Log.d(logTag, "transfer summary report notification sent status $isSent on uuid: $uuid")
       }
-      GattService.VERIFICATION_STATUS_CHAR_UUID -> {
+      UUIDConstants.VERIFICATION_STATUS_CHAR_UUID -> {
         if (transferHandler.getCurrentState() == TransferHandler.States.TransferComplete) {
           if (!isSent){
             Log.e(logTag, "onSendDataFail: Failed to notify verification status to wallet about")
