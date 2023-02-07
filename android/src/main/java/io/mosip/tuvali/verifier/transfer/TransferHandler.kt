@@ -9,6 +9,7 @@ import io.mosip.tuvali.transfer.Assembler
 import io.mosip.tuvali.transfer.TransferReportRequest
 import io.mosip.tuvali.transfer.TransferReport
 import io.mosip.tuvali.verifier.GattService
+import io.mosip.tuvali.verifier.UUIDConstants
 import io.mosip.tuvali.verifier.exception.CorruptedChunkReceivedException
 import io.mosip.tuvali.verifier.transfer.message.*
 import java.util.*
@@ -71,7 +72,7 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
                 TransferReport(TransferReport.ReportType.MISSING_CHUNKS, totalPages.toInt(), missedSequenceNumbers.sliceArray(0 until defaultTransferReportPageSize))
               }
             }
-            transferListener.sendDataOverNotification(GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID, transferReport.toByteArray())
+            transferListener.sendDataOverNotification(UUIDConstants.TRANSFER_REPORT_RESPONSE_CHAR_UUID, transferReport.toByteArray())
           }
           TransferReportRequest.ReportType.Error.ordinal -> {
             transferListener.onResponseReceivedFailed("received error on transfer Report request from remote")
