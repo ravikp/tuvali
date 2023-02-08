@@ -52,14 +52,14 @@ class Chunker(private val data: ByteArray, private val mtuSize: Int = DEFAULT_CH
   +-----------------------+-----------------------------+-------------------------------------------------------------------------+
    */
   private fun frameChunk(seqIndex: Int, fromIndex: Int, toIndex: Int): ByteArray {
+    val seqNumber = seqIndex +1
     Log.d(
       logTag,
-      "fetching chunk size: ${toIndex - fromIndex}, chunkSequenceNumber(1-indexed): ${seqIndex+1}"
+      "fetching chunk size: ${toIndex - fromIndex}, chunkSequenceNumber(1-indexed): $seqNumber"
     )
     val dataChunk = data.copyOfRange(fromIndex, toIndex)
     val crc = CheckValue.get(dataChunk)
-
-    return intToTwoBytesBigEndian(seqIndex+1) + intToTwoBytesBigEndian(crc.toInt()) + dataChunk
+    return intToTwoBytesBigEndian(seqNumber) + intToTwoBytesBigEndian(crc.toInt()) + dataChunk
   }
 
   fun isComplete(): Boolean {

@@ -24,7 +24,8 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
       Log.e(logTag, "received invalid chunk chunkSize: ${chunkData.size}, lastReadSeqIndex: $lastReadSeqIndex")
       return 0
     }
-    val seqIndexInMeta = (twoBytesToIntBigEndian(chunkData.copyOfRange(0, 2))-1)
+    val seqNumber = twoBytesToIntBigEndian(chunkData.copyOfRange(0, 2))
+    val seqIndexInMeta = seqNumber - 1
     val crcReceived = twoBytesToIntBigEndian(chunkData.copyOfRange(2,4)).toUShort()
 
     Log.d(logTag, "received add chunk received chunkSize: ${chunkData.size}, seqIndexInMeta: ${seqIndexInMeta+1}")
@@ -59,8 +60,8 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
     var missedSeqIndexes = intArrayOf()
     chunkReceivedMarker.forEachIndexed() { i, elem ->
       if (elem != chunkReceivedMarkerByte) {
-        Log.d(logTag, "getMissedSequenceNumbers: adding missed sequence number $i")
-        missedSeqIndexes += i
+        Log.d(logTag, "getMissedSequenceNumbers: adding missed sequence number ${i+1}")
+        missedSeqIndexes = missedSeqIndexes + i + 1
       }
     }
     return missedSeqIndexes
