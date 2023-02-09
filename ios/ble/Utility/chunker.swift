@@ -33,7 +33,7 @@ class Chunker {
         print(">> SHA256 \(chunkData?.sha256())")
         for i in 0..<totalChunkCount {
             print(i)
-            preSlicedChunks.append(chunk(seqNumber: i))
+            preSlicedChunks.append(chunk(seqIndex: i))
             print(preSlicedChunks ?? [])
         }
     }
@@ -56,10 +56,10 @@ class Chunker {
     }
 
     func next() -> Data {
-        var seqNumber = chunksReadCounter
+        var seqIndex = chunksReadCounter
         chunksReadCounter += 1
-        if seqNumber <= totalChunkCount - 1 {
-            return (preSlicedChunks[seqNumber])
+        if seqIndex <= totalChunkCount - 1 {
+            return (preSlicedChunks[seqIndex])
         }
        else
         {
@@ -71,15 +71,15 @@ class Chunker {
         return (preSlicedChunks[num])
     }
 
-    private func chunk(seqNumber: Int) -> Data {
-        let fromIndex = seqNumber * effectivePayloadSize
-        if (seqNumber == (totalChunkCount - 1) && lastChunkByteCount > 0) {
+    private func chunk(seqIndex: Int) -> Data {
+        let fromIndex = seqIndex * effectivePayloadSize
+        if (seqIndex == (totalChunkCount - 1) && lastChunkByteCount > 0) {
             print( "fetching last chunk")
             let chunkLength = lastChunkByteCount + chunkMetaSize
-            return frameChunk(seqNumber: seqNumber, chunkLength: chunkLength, fromIndex: fromIndex, toIndex: fromIndex + lastChunkByteCount)
+            return frameChunk(seqIndex: seqIndex, chunkLength: chunkLength, fromIndex: fromIndex, toIndex: fromIndex + lastChunkByteCount)
         } else {
-            let toIndex = (seqNumber + 1) * effectivePayloadSize
-            return frameChunk(seqNumber: seqNumber, chunkLength: mtuSize, fromIndex: fromIndex, toIndex: toIndex)
+            let toIndex = (seqIndex + 1) * effectivePayloadSize
+            return frameChunk(seqIndex: seqIndex, chunkLength: mtuSize, fromIndex: fromIndex, toIndex: toIndex)
         }
     }
 
@@ -93,8 +93,9 @@ class Chunker {
      +-----------------------+-----------------------------+-------------------------------------------------------------------------+
      */
 
-    private func frameChunk(seqNumber: Int, chunkLength: Int, fromIndex: Int, toIndex: Int) -> Data {
-        print("fetching chunk size:",toIndex,"-", fromIndex,"}, chunkSequenceNumber(0-indexed):", seqNumber)
+    private func frameChunk(seqIndex: Int, chunkLength: Int, fromIndex: Int, toIndex: Int) -> Data {
+        let seqNumber = seqIndex + 1
+        print("fetching chunk size:",toIndex,"-", fromIndex,"}, chunkSequenceNumber(1-indexed):", seqNumber)
 //        return intToTwoBytesBigEndian(num: seqNumber) + intToTwoBytesBigEndian(num: chunkLength) + chunkData!.subdata(in: fromIndex..<toIndex)
         if let chunkData = chunkData {
             let payload = chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)

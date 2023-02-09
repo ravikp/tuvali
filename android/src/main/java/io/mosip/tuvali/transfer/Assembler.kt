@@ -24,14 +24,14 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
       Log.e(logTag, "received invalid chunk chunkSize: ${chunkData.size}, lastReadSeqIndex: $lastReadSeqIndex")
       return 0
     }
-    val seqNumber = twoBytesToIntBigEndian(chunkData.copyOfRange(0, 2))
-    val seqIndexInMeta = seqNumber - 1
+    val seqNumberInMeta = twoBytesToIntBigEndian(chunkData.copyOfRange(0, 2))
+    val seqIndexInMeta = seqNumberInMeta - 1
     val crcReceived = twoBytesToIntBigEndian(chunkData.copyOfRange(2,4)).toUShort()
 
-    Log.d(logTag, "received add chunk received chunkSize: ${chunkData.size}, seqIndexInMeta: ${seqIndexInMeta+1}")
+    Log.d(logTag, "received add chunk received chunkSize: ${chunkData.size}, seqNumberInMeta: $seqNumberInMeta")
 
     if (chunkSizeGreaterThanMtuSize(chunkData)) {
-      Log.e(logTag, "chunkSizeGreaterThanMtuSize chunkSize: ${chunkData.size}, seqIndexInMeta: ${seqIndexInMeta+1}")
+      Log.e(logTag, "chunkSizeGreaterThanMtuSize chunkSize: ${chunkData.size}, seqNumberInMeta: $seqNumberInMeta")
       return seqIndexInMeta
     }
     if(crcReceivedIsNotEqualToCrcCalculated(chunkData.copyOfRange(4, chunkData.size), crcReceived)){
@@ -40,7 +40,7 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
     lastReadSeqIndex = seqIndexInMeta
     System.arraycopy(chunkData, chunkMetaSize, data, seqIndexInMeta * effectivePayloadSize, (chunkData.size-chunkMetaSize))
     chunkReceivedMarker[seqIndexInMeta] = chunkReceivedMarkerByte
-    Log.d(logTag, "adding chunk complete at index(1-based): ${seqIndexInMeta+1}, received chunkSize: ${chunkData.size}")
+    Log.d(logTag, "adding chunk complete at index(1-based): $seqNumberInMeta, received chunkSize: ${chunkData.size}")
     return seqIndexInMeta
   }
 
