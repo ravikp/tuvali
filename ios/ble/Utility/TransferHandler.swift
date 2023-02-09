@@ -6,9 +6,15 @@ class TransferHandler {
     private var currentState: States = States.UnInitialised
     private var responseStartTimeInMillis: UInt64 = 0
     private var chunker: Chunker?
+    private var wallet: Wallet
 
-    public static var shared = TransferHandler()
+//    public static var shared = TransferHandler()
 
+    // TODO: Use Wallet interface instead of concrete object
+    init(wallet: Wallet) {
+        self.wallet = wallet
+    }
+    
     func initialize(initdData: Data) {
         data = initdData
     }
@@ -71,23 +77,25 @@ class TransferHandler {
     private func sendRetryRespChunk(missingChunks: [Int]) {
         for chunkIndex in missingChunks {
             let chunk = chunker?.getChunkWithIndex(index: chunkIndex)
-            Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk!)
+            wallet.central?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk!)
             // checks if no more missing chunks exist on verifier
         }
         sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT, data: nil))
     }
-    private func requestTransmissionReport() {
-        var notifyObj: Data
-        Central.shared.writeWithoutResp(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.semaphoreCharacteristic, data: withUnsafeBytes(of: 1.littleEndian) { Data($0) })
-        print("transmission report requested")
-        NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, queue: nil) { [unowned self] notification in
-            print("Handling notification for \(notification.name.rawValue)")
-            if let notifyObj = notification.userInfo?["report"] as? Data {
-                sendMessage(message: imessage(msgType: .HANDLE_TRANSMISSION_REPORT, data: notifyObj))
-            } else {
-                print("invalid report")
-            }
+    
+    func handleTransmissionReport(notification: Notification) {
+        print("Handling notification for \(notification.name.rawValue)")
+        if let notifyObj: Data = notification.userInfo?["report"] as? Data {
+            sendMessage(message: imessage(msgType: .HANDLE_TRANSMISSION_REPORT, data: notifyObj))
+        } else {
+            print("invalid report")
         }
+    }
+    
+    private func requestTransmissionReport() {
+        wallet.registerCallbackForEvent(event: NotificationEvent.HANDLE_TRANSMISSION_REPORT, callback: handleTransmissionReport)
+        wallet.central?.writeWithoutResp(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.semaphoreCharacteristic, data: withUnsafeBytes(of: 1.littleEndian) { Data($0) })
+        print("transmission report requested")
     }
 
     private func handleTransmissionReport(report: Data) {
@@ -99,7 +107,7 @@ class TransferHandler {
             currentState = States.TransferVerified
             EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"RECEIVED\"")
             print("Emitting send-vc:response RECEIVED message")
-            Wallet.shared.registerCallbackForEvent(event: NotificationEvent.VERIFICATION_STATUS_RESPONSE) {
+            wallet.registerCallbackForEvent(event: NotificationEvent.VERIFICATION_STATUS_RESPONSE) {
                 notification in
                 // TODO -- Add all React native events under an Enum
                 let value = notification.userInfo?["status"] as? Data
@@ -120,17 +128,19 @@ class TransferHandler {
             sendMessage(message: imessage(msgType: .RESPONSE_TRANSFER_FAILED, data: nil, dataSize: 0))
         }
     }
+    
+    private func onResponseSizeWriteSuccess(notification: Notification) {
+        print("Handling notification for \(notification.name.rawValue)")
+        sendMessage(message: imessage(msgType: .RESPONSE_SIZE_WRITE_SUCCESS))
+    }
 
     private func sendResponseSize(size: Int) {
         // TODO: Send a stringified number in a byte array
         let decimalString = String(size)
         let d = decimalString.data(using: .utf8)
         print(d!)
-        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseSizeCharacteristic, data: d!)
-        NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "RESPONSE_SIZE_WRITE_SUCCESS"), object: nil, queue: nil) { [unowned self] notification in
-            print("Handling notification for \(notification.name.rawValue)")
-            sendMessage(message: imessage(msgType: .RESPONSE_SIZE_WRITE_SUCCESS, data: data))
-        }
+        wallet.notificationHandler?.registerCallbackForEvent(event: NotificationEvent.RESPONSE_SIZE_WRITE_SUCCESS, callback: onResponseSizeWriteSuccess)
+        wallet.central?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseSizeCharacteristic, data: d!)
     }
 
     private func initResponseChunkSend() {
@@ -142,7 +152,7 @@ class TransferHandler {
         if let chunker = chunker {
             while !chunker.isComplete() {
                 let chunk = chunker.next()
-                Central.shared.writeWithoutResp(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk)
+                wallet.central?.writeWithoutResp(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk)
                 Thread.sleep(forTimeInterval: 0.020)
             }
             sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT))

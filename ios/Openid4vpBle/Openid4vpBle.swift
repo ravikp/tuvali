@@ -3,6 +3,7 @@ import Foundation
 @available(iOS 13.0, *)
 @objc(Openid4vpBle)
 class Openid4vpBle: RCTEventEmitter {
+    var wallet: Wallet?
     
     override init() {
         super.init()
@@ -23,7 +24,8 @@ class Openid4vpBle: RCTEventEmitter {
         var paramsObj = stringToJson(jsonText: params)
         var firstPartOfPk = paramsObj["pk"]
         print("synchronized setConnectionParameters called with", params, "and", firstPartOfPk)
-        Wallet.shared.setAdvIdentifier(identifier: firstPartOfPk as! String)
+        wallet = Wallet()
+        wallet?.setAdvIdentifier(identifier: firstPartOfPk as! String)
         return "data" as Any
     }
     
@@ -46,14 +48,15 @@ class Openid4vpBle: RCTEventEmitter {
 
     @objc(destroyConnection:)
     func destroyConnection(withCallback callback: @escaping RCTResponseSenderBlock) -> Any {
-        // post 10ms call the callback
-        let seconds = 0.01
-//        DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
-//            let newMessage = "hello world"
-//            callback([newMessage])
-//        }
-        // Wallet.initialize()
-        Wallet.shared.destroyConnection()
+        if wallet == nil {
+            callback([])
+            print("destroy connection and wallet is nil")
+            return "wallet is nil" as! Any
+        }
+        print("destroy connection on wallet")
+        wallet?.destroyConnection()
+        callback([])
+        wallet = nil
         return "check" as! Any
     }
 
@@ -69,11 +72,11 @@ class Openid4vpBle: RCTEventEmitter {
         case "exchange-sender-info":
             print("EXCHANGE-SENDER-INFO")
             callback([])
-            Wallet.shared.writeIdentity()
+            wallet?.writeIdentity()
         case "send-vc":
             callback([])
             print(">> raw message size", messageComponents[1].count)
-            Wallet.shared.sendData(data: messageComponents[1])
+            wallet?.sendData(data: messageComponents[1])
         default:
             print("DEFAULT SEND: MESSAGE:: ", message)
         }
@@ -86,9 +89,8 @@ class Openid4vpBle: RCTEventEmitter {
             print("Advertiser")
         case "discoverer":
             print("Discoverer")
-            Central.shared.initialize()
-            Wallet.shared.central = Central.shared
-            Wallet.shared.registerCallbackForEvent(event: NotificationEvent.CREATE_CONNECTION) {
+            wallet?.central = Central()
+            wallet?.registerCallbackForEvent(event: NotificationEvent.CREATE_CONNECTION) {
                 notification in
                 callback([])
             }

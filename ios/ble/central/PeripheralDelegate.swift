@@ -48,9 +48,9 @@ extension Central: CBPeripheralDelegate {
             self.cbCharacteristics[characteristic.uuid.uuidString] = characteristic
             // subscribe to the characteristics for (2035, 2036, 2037)
             if characteristic.uuid == NetworkCharNums.semaphoreCharacteristic ||
-                characteristic.uuid == NetworkCharNums.verificationStatusCharacteristic
+                characteristic.uuid == NetworkCharNums.verificationStatusCharacteristic
             {
-                peripheral.setNotifyValue(true, for: characteristic)
+                peripheral.setNotifyValue(true, for: characteristic)
             }
         }
 
@@ -98,16 +98,19 @@ extension Central: CBPeripheralDelegate {
             let report = characteristic.value as Data?
             print("ts report is :::", report)
             // TODO: figure out why object isn't sent out across
-            NotificationCenter.default.post(name: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, userInfo: ["report": report])
+            print("CBPeripheral: received transfer summary report: ", report)
+            NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.HANDLE_TRANSMISSION_REPORT.rawValue), object: nil, userInfo: ["report": report])
         }
 
         if characteristic.uuid == NetworkCharNums.verificationStatusCharacteristic {
             let verificationStatus = characteristic.value as Data?
+            print("CBPeripheral: received verification status: ", verificationStatus)
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.VERIFICATION_STATUS_RESPONSE.rawValue), object: nil, userInfo: ["status": verificationStatus])
         }
 
         if characteristic.uuid == NetworkCharNums.connectionStatusChangeCharacteristic {
             let connectionStatus = characteristic.value as Data?
+            print("CBPeripheral: received connection status change: ", connectionStatus)
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.CONNECTION_STATUS_CHANGE.rawValue), object: nil, userInfo: ["connectionStatus": connectionStatus])
         }
     }
@@ -118,15 +121,19 @@ extension Central: CBPeripheralDelegate {
         }
 
         if characteristic.uuid == NetworkCharNums.identifyRequestCharacteristic {
+            print("CBPeripheral: received callback for identity char write")
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.EXCHANGE_RECEIVER_INFO.rawValue), object: nil)
         }
         if characteristic.uuid == NetworkCharNums.responseSizeCharacteristic {
+            print("CBPeripheral: received callback for response size char write")
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.RESPONSE_SIZE_WRITE_SUCCESS.rawValue), object: nil)
         } else if characteristic.uuid == NetworkCharNums.responseCharacteristic {
+            print("CBPeripheral: received callback for response char write")
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.INIT_RESPONSE_CHUNK_TRANSFER.rawValue), object: nil)
         }
     }
 
     func peripheral(_ peripheral: CBPeripheral, didModifyServices invalidatedServices: [CBService]) {
+        print("CBPeripheral: received callback for didModifyServices")
     }
 }

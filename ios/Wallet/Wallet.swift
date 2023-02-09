@@ -1,21 +1,26 @@
 import Foundation
+import CoreBluetooth
 import Gzip
 
 @objc(Wallet)
 @available(iOS 13.0, *)
 class Wallet: NSObject {
-    
-    static let shared = Wallet()
     var central: Central?
     var secretTranslator: SecretTranslator?
     var cryptoBox: WalletCryptoBox = WalletCryptoBoxBuilder().build()
     var advIdentifier: String?
     var verifierPublicKey: Data?
     static let EXCHANGE_RECEIVER_INFO_DATA = "{\"deviceName\":\"wallet\"}"
+    var notificationHandler: NotificationHandler? = NotificationHandler()
     
-    private override init() {
+    override init() {
         super.init()
         lookForDestroyConnection()
+    }
+    
+    deinit {
+        // De register all observers
+        notificationHandler = nil
     }
     
     @objc(getModuleName:withRejecter:)
@@ -24,14 +29,34 @@ class Wallet: NSObject {
     }
     
     func setAdvIdentifier(identifier: String) {
+        registerCallbackForEvent(event: NotificationEvent.ON_DEVICE_DISCOVERED, callback: onDeviceDiscovered)
         self.advIdentifier = identifier
     }
     
-    func registerCallbackForEvent(event: NotificationEvent, callback: @escaping (_ notification: Notification) -> Void) {
-        NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: event.rawValue), object: nil, queue: nil) { [unowned self] notification in
-            print("Handling notification for \(notification.name.rawValue)")
-            callback(notification)
+    func onDeviceDiscovered(notification: Notification) {
+        let peripheral = notificationHandler?.getObjectFromNotification(notification: notification, userInfoKey: "peripheral") as? CBPeripheral
+        if peripheral == nil {
+            return
         }
+        let advertisementData = notificationHandler?.getObjectFromNotification(notification: notification, userInfoKey: "advData") as? Data
+        if advertisementData == nil {
+            return
+        }
+        let scanResponseData = notificationHandler?.getObjectFromNotification(notification: notification, userInfoKey: "scanRespData") as? Data
+        if scanResponseData == nil {
+            return
+        }
+        
+        let publicKeyData =  advertisementData!.subdata(in: advertisementData!.count-5..<advertisementData!.count) + scanResponseData!
+        print("veri pub key::", publicKeyData)
+        self.buildSecretTranslator(publicKeyData: publicKeyData)
+        if self.isSameAdvIdentifier(advertisementPayload: advertisementData!) {
+            self.central?.connectToPeripheral(peripheral: peripheral!)
+        }
+    }
+    
+    func registerCallbackForEvent(event: NotificationEvent, callback: @escaping (_ notification: Notification) -> Void) {
+        notificationHandler?.registerCallbackForEvent(event: event, callback: callback)
     }
     
     func buildSecretTranslator(publicKeyData: Data) {
@@ -55,8 +80,8 @@ class Wallet: NSObject {
         }
     
     func destroyConnection(){
-        NotificationCenter.default.removeObserver(self)
-        print("destroyed")
+        //NotificationCenter.default.removeObserver(self)
+        print("destroy connection")
     }
     
     func isSameAdvIdentifier(advertisementPayload: Data) -> Bool {
@@ -92,7 +117,7 @@ class Wallet: NSObject {
         var encryptedData = secretTranslator?.encryptToSend(data: compressedBytes)
         if (encryptedData != nil) {
             DispatchQueue.main.async {
-                let transferHandler = TransferHandler.shared
+                let transferHandler = TransferHandler(wallet: self)
                 // DOUBT: why is encrypted data written twice ?
                 transferHandler.initialize(initdData: encryptedData!)
                 let imsgBuilder = imessage(msgType: .INIT_RESPONSE_TRANSFER, data: encryptedData!)

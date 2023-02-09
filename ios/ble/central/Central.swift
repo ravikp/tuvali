@@ -11,9 +11,8 @@ class Central: NSObject, CBCentralManagerDelegate {
     var connectedPeripheral: CBPeripheral?
     var cbCharacteristics: [String: CBCharacteristic] = [:]
 
-    public static var shared = Central()
-
-    func initialize() {
+    override init() {
+        super.init()
         centralManager = CBCentralManager(delegate: self, queue: nil)
     }
 
@@ -29,6 +28,14 @@ class Central: NSObject, CBCentralManagerDelegate {
 
     deinit {
         print("Central is DeInitializing")
+    }
+    
+    func connectToPeripheral(peripheral: CBPeripheral) {
+        self.connectedPeripheral = peripheral
+        self.connectedPeripheral?.delegate = self
+        if let connectedPeripheral = self.connectedPeripheral {
+            self.centralManager.connect(connectedPeripheral)
+        }
     }
 
     func scanForPeripherals() {
