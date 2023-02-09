@@ -1,4 +1,3 @@
-
 import Foundation
 
 @available(iOS 13.0, *)
@@ -6,21 +5,22 @@ class TransferHandler {
     var data: Data?
     private var currentState: States = States.UnInitialised
     private var responseStartTimeInMillis: UInt64 = 0
-    var chunker: Chunker?
-    
+    private var chunker: Chunker?
+
     public static var shared = TransferHandler()
-    
+
     func initialize(initdData: Data) {
         data = initdData
     }
-    
+
     func sendMessage(message: imessage) {
         handleMessage(msg: message)
     }
     deinit{
         print("deinit happend in transferh")
     }
-    private func handleMessage(msg: imessage){
+
+    private func handleMessage(msg: imessage) {
         if msg.msgType == .INIT_RESPONSE_TRANSFER {
             var responseData = msg.data!
             print("Total response size of data",responseData.count)
@@ -34,9 +34,12 @@ class TransferHandler {
             sendResponseSize(size: msg.dataSize!)
         }
         else if msg.msgType == .RESPONSE_SIZE_WRITE_SUCCESS {
-          responseStartTimeInMillis = Utils.currentTimeInMilliSeconds()
-          currentState = States.ResponseSizeWriteSuccess
-          initResponseChunkSend()
+            responseStartTimeInMillis = Utils.currentTimeInMilliSeconds()
+            currentState = States.ResponseSizeWriteSuccess
+            initResponseChunkSend()
+        } else if msg.msgType == .RESPONSE_SIZE_WRITE_FAILED {
+            print("failed to write response size")
+            currentState = States.ResponseWriteFailed
         } else if msg.msgType == .INIT_RESPONSE_CHUNK_TRANSFER {
             currentState = .ResponseWritePending
             sendResponseChunk()
@@ -49,35 +52,74 @@ class TransferHandler {
             currentState = States.HandlingTransferReport
             var handleTransmissionReportMessage = msg.data
             handleTransmissionReport(report: handleTransmissionReportMessage!)
-        }
-        else {
+        } else if msg.msgType == .RESPONSE_CHUNK_WRITE_SUCCESS {
+            // NoOp: iOS lacks support for writeWithoutResponse callbacks unlike Android
+        } else if msg.msgType == .RESPONSE_CHUNK_WRITE_FAILURE {
+            // NoOp: might need to use this later when sent with resp
+            print("response chunk write failed")
+        } else if msg.msgType == .RESPONSE_TRANSFER_COMPLETE {
+            currentState = States.TransferComplete
+            sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT))
+        } else if msg.msgType == .RESPONSE_TRANSFER_FAILED {
+            currentState = States.ResponseWriteFailed
+            // TODO: should response transfer be retried
+        } else {
             print("out of scope")
         }
     }
-    
+
+    private func sendRetryRespChunk(missingChunks: [Int]) {
+        for chunkIndex in missingChunks {
+            let chunk = chunker?.getChunkWithIndex(index: chunkIndex)
+            Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk!)
+            // checks if no more missing chunks exist on verifier
+        }
+        sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT, data: nil))
+    }
     private func requestTransmissionReport() {
-        var notifyObj: Data = Data()
-        Central.shared.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.semaphoreCharacteristic, data: withUnsafeBytes(of: 1.bigEndian) { Data($0) })
+        var notifyObj: Data
+        Central.shared.writeWithoutResp(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.semaphoreCharacteristic, data: withUnsafeBytes(of: 1.littleEndian) { Data($0) })
+        print("transmission report requested")
         NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, queue: nil) { [unowned self] notification in
             print("Handling notification for \(notification.name.rawValue)")
-            notifyObj = notification.object as! Data
+            if let notifyObj = notification.userInfo?["report"] as? Data {
+                sendMessage(message: imessage(msgType: .HANDLE_TRANSMISSION_REPORT, data: notifyObj))
+            } else {
+                print("invalid report")
+            }
         }
-        sendMessage(message: imessage(msgType: .HANDLE_TRANSMISSION_REPORT, data: notifyObj))
     }
 
     private func handleTransmissionReport(report: Data) {
-//       if (report.type == TransferReport.ReportType.SUCCESS) {
-//         currentState = States.TransferVerified
-//         transferListener.onResponseSent()
-//         print(logTag, "handleMessage: Successfully transferred vc in ${System.currentTimeMillis() - responseStartTimeInMillis}ms")
-//       } else if(report.type == TransferReport.ReportType.MISSING_CHUNKS && report.missingSequences != null && !isRetryFrame) {
-//         currentState = States.PartiallyTransferred
-//         this.sendMessage(InitRetryTransferMessage(report.missingSequences))
-//       } else {
-//         this.sendMessage(ResponseTransferFailureMessage("Invalid Report"))
-//       }
-        print("report is :::", String(data: report, encoding: .utf8))
-     }
+        let r = TransferReport(bytes: report)
+        print(" got the transfer report type \(r.type)")
+        print("missing pages: ", r.totalPages)
+
+        if (r.type == .SUCCESS) {
+            currentState = States.TransferVerified
+            EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"RECEIVED\"")
+            print("Emitting send-vc:response RECEIVED message")
+            Wallet.shared.registerCallbackForEvent(event: NotificationEvent.VERIFICATION_STATUS_RESPONSE) {
+                notification in
+                // TODO -- Add all React native events under an Enum
+                let value = notification.userInfo?["status"] as? Data
+                if let value =  value {
+                    let status = Int(value[0])
+                    if status == 0 {
+                        EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"ACCEPTED\"")
+                    } else if status == 1 {
+                        EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"REJECTED\"")
+                    }
+                }
+            }
+        } else if r.type == .MISSING_CHUNKS {
+            currentState = .PartiallyTransferred
+            sendRetryRespChunk(missingChunks: r.missingSequences!)
+        } else {
+            print("handle transfer report parsing, report-type=\(r.type)")
+            sendMessage(message: imessage(msgType: .RESPONSE_TRANSFER_FAILED, data: nil, dataSize: 0))
+        }
+    }
 
     private func sendResponseSize(size: Int) {
         // TODO: Send a stringified number in a byte array
@@ -90,32 +132,22 @@ class TransferHandler {
             sendMessage(message: imessage(msgType: .RESPONSE_SIZE_WRITE_SUCCESS, data: data))
         }
     }
-    
+
     private func initResponseChunkSend() {
-         print("initResponseChunkSend")
+        print("initResponseChunkSend")
         sendMessage(message: imessage(msgType: .INIT_RESPONSE_CHUNK_TRANSFER, data: data, dataSize: data?.count))
     }
-    
+
     private func sendResponseChunk() {
         if let chunker = chunker {
-            if chunker.isComplete() {
-                print("Data send complete")
-                sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT))
-                return
-            }
-
-            var done = false
-            while !done {
+            while !chunker.isComplete() {
                 let chunk = chunker.next()
-                if chunk.isEmpty {
-                    done = true
-                    sendMessage(message: imessage(msgType: .INIT_RESPONSE_CHUNK_TRANSFER, data: data, dataSize: data?.count))
-                }
-                else {
-                    Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk)
-                }
-                
+                Central.shared.writeWithoutResp(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.responseCharacteristic, data: chunk)
+                Thread.sleep(forTimeInterval: 0.020)
             }
+            sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT))
+        } else {
+                print("chunker is nil !")
         }
     }
 }
@@ -162,4 +194,8 @@ enum SemaphoreMarker: Int {
     case UnInitialised = 0
     case RequestReport = 1
     case Error = 2
-  }
+}
+
+
+
+
