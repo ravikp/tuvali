@@ -12,6 +12,7 @@ import io.mosip.tuvali.cryptography.VerifierCryptoBoxBuilder
 import com.facebook.react.bridge.Callback
 import io.mosip.tuvali.transfer.TransferReportRequest
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
+import io.mosip.tuvali.transfer.CheckValue
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.transfer.ITransferListener
 import io.mosip.tuvali.verifier.transfer.TransferHandler
@@ -123,6 +124,11 @@ class Verifier(
     when (uuid) {
       GattService.IDENTIFY_REQUEST_CHAR_UUID -> {
         value?.let {
+          val crcValueReceived = Util.twoBytesToIntBigEndian(value.copyOfRange(44,46)).toUShort()
+          if(!CheckValue.verify(value.copyOfRange(0,44), crcValueReceived)){
+            Log.e(logTag, "CRC check failed. Received CRC: $crcValueReceived")
+            //TODO: CRC Error Handling
+          }
           // Total size of identity char value will be 12 bytes IV + 32 bytes pub key
           if (value.size < 12 + 32) {
             return
