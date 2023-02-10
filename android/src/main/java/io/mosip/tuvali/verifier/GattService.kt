@@ -8,13 +8,61 @@ class GattService {
   //TODO: Update UUIDs as per specification
   companion object {
     val IDENTITY_CHARACTERISTIC_UUID: UUID = UUID.fromString("00002030-0000-1000-8000-00805f9b34fb")
+    /*
+      +---------------------------------- + ----------------------------------- +
+      |                                   |                                     |
+      |         IV + Public key           |   Checksum value of IV + Public key |
+      |           (44 bytes)              |        (2 bytes)                    |
+      |                                   |                                     |
+      +---------------------------------- + ----------------------------------- +
+     */
     val REQUEST_SIZE_CHAR_UUID: UUID = UUID.fromString("00002031-0000-1000-8000-00805f9b34fb")
     val REQUEST_CHAR_UUID: UUID = UUID.fromString("00002032-0000-1000-8000-00805f9b34fb")
     val RESPONSE_SIZE_CHAR_UUID: UUID = UUID.fromString("00002033-0000-1000-8000-00805f9b34fb")
+    /*
+       +---------------------------------- + ----------------------------------- +
+       |                                   |                                     |
+       |         Response Size             |   Checksum value of Response size   |
+       |                                   |        (2 bytes)                    |
+       |                                   |                                     |
+       +---------------------------------- + ----------------------------------- +
+    */
     val RESPONSE_CHAR_UUID: UUID = UUID.fromString("00002034-0000-1000-8000-00805f9b34fb")
+    /*
+      + --------------------- + --------------------------- + --------------------------- +
+      |                       |                             |                             |
+      |  chunk sequence no    |        chunk payload        |   checksum value of data    |
+      |      (2 bytes)        |      (upto MTU-4 bytes)     |        ( 2 bytes)           |
+      |                       |                             |                             |
+      + --------------------- + --------------------------- + --------------------------- +
+   */
     val SEMAPHORE_CHAR_UUID: UUID = UUID.fromString("00002035-0000-1000-8000-00805f9b34fb")
+    /*
+       +---------------------------------- + ----------------------------------- +
+       |                                   |                                     |
+       |       Transmission Report         |   Checksum value of Response size   |
+       |        Request/Response           |        (2 bytes)                    |
+       |                                   |                                     |
+       +---------------------------------- + ----------------------------------- +
+    */
     val VERIFICATION_STATUS_CHAR_UUID: UUID = UUID.fromString("00002036-0000-1000-8000-00805f9b34fb")
+    /*
+       +---------------------------------- + ----------------------------------- +
+       |                                   |                                     |
+       |           Verification            |   Checksum value of Response size   |
+       |    Accepted/Rejected(1 byte)      |        (2 bytes)                    |
+       |                                   |                                     |
+       +---------------------------------- + ----------------------------------- +
+    */
     val CONNECTION_STATUS_CHANGE_CHAR_UUID: UUID = UUID.fromString("00002037-0000-1000-8000-00805f9b34fb")
+    /*
+       +---------------------------------- + ----------------------------------- +
+       |                                   |                                     |
+       |      Disconnect Status            |   Checksum value of Response size   |
+       |        (1 byte)                   |        (2 bytes)                    |
+       |                                   |                                     |
+       +---------------------------------- + ----------------------------------- +
+    */
   }
 
   fun create(): BluetoothGattService {

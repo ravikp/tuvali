@@ -15,7 +15,7 @@ object CheckValue {
     val calculatedCRC = get(data)
     if(calculatedCRC == receivedCRC)
       return true
-    Log.e(logTag, "crcReceivedNotEqualToCrcCalculated crcReceived: $receivedCRC, crcCalculated: $calculatedCRC" )
+    Log.d(logTag, "crcReceivedNotEqualToCrcCalculated crcReceived: $receivedCRC, crcCalculated: $calculatedCRC" )
     return false
   }
 

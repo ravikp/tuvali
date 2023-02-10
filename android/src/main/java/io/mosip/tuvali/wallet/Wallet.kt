@@ -15,6 +15,7 @@ import io.mosip.tuvali.cryptography.WalletCryptoBoxBuilder
 import com.facebook.react.bridge.Callback
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
 import io.mosip.tuvali.retrymechanism.lib.BackOffStrategy
+import io.mosip.tuvali.transfer.CheckValue
 import io.mosip.tuvali.transfer.TransferReport
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.GattService
@@ -79,10 +80,12 @@ class Wallet(
     val publicKey = walletCryptoBox.publicKey()
     secretsTranslator = walletCryptoBox.buildSecretsTranslator(verifierPK)
     val iv = secretsTranslator?.initializationVector()
+    val data = iv!! + publicKey!!
+    val crcValue = CheckValue.get(data)
     central.write(
       Verifier.SERVICE_UUID,
       GattService.IDENTITY_CHARACTERISTIC_UUID,
-      iv!! + publicKey!!
+      data + Util.intToTwoBytesBigEndian(crcValue.toInt())
     )
     Log.d(
       logTag,
