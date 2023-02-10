@@ -27,4 +27,9 @@ struct Utils {
     static func twoBytesToIntBigEndian(num: Data) -> Int {
         return (Int(num[0]) * 256 + Int(num[1]) )
     }
+    
+    static func intToBytes(_ value: UInt16) -> Data {
+        var value = value.bigEndian
+        return Data(bytes: &value, count: MemoryLayout<UInt16>.size)
+    }
 }
