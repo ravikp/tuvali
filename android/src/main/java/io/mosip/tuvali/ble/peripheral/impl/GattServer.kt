@@ -56,8 +56,11 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
   }
 
   override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
-    Log.d(logTag, "onConnectionStateChange: status: $status, newState: $newState, device: $device, deviceHash: ${device.hashCode()}, deviceBondState: ${device?.bondState}")
-    bluetoothDevice = if(newState == BluetoothProfile.STATE_CONNECTED){
+    Log.d(
+      logTag,
+      "onConnectionStateChange: status: $status, newState: $newState, device: $device, deviceHash: ${device.hashCode()}, deviceBondState: ${device?.bondState}"
+    )
+    bluetoothDevice = if (newState == BluetoothProfile.STATE_CONNECTED) {
       // Required by Android SDK to connect from peripheral side
       val connect = gattServer.connect(device, false)
       Log.d(logTag, "connecting from Peripheral to central: $connect")
@@ -93,11 +96,22 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     offset: Int,
     value: ByteArray?
   ) {
-    Log.d(logTag, "onCharacteristicWriteRequest: requestId: ${requestId}, preparedWrite: ${preparedWrite}, responseNeeded: ${responseNeeded}, offset: ${offset}, dataSize: ${value?.size}")
-    onReceivedWriteCallback(characteristic, value)
-    if (responseNeeded) {
-      val response = gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
-      Log.d(logTag, "onCharacteristicWriteRequest: didResponseSent: ${response}")
+    if (device == bluetoothDevice) {
+      Log.d(
+        logTag,
+        "onCharacteristicWriteRequest: requestId: ${requestId}, preparedWrite: ${preparedWrite}, responseNeeded: ${responseNeeded}, offset: ${offset}, dataSize: ${value?.size}"
+      )
+      onReceivedWriteCallback(characteristic, value)
+      if (responseNeeded) {
+        val response =
+          gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
+        Log.d(logTag, "onCharacteristicWriteRequest: didResponseSent: ${response}")
+      }
+    } else {
+      Log.e(
+        logTag,
+        "The request is coming from different bluetooth device. Ignoring the request. Request from device : $device. Current connected device: $bluetoothDevice "
+      )
     }
   }
 
@@ -107,14 +121,24 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     offset: Int,
     characteristic: BluetoothGattCharacteristic?
   ) {
-    val isSuccessful = gattServer.sendResponse(
-      device,
-      requestId,
-      BluetoothGatt.GATT_SUCCESS,
-      offset,
-      characteristic?.value
-    )
-    Log.d(logTag, "onCharacteristicReadRequest: isSuccessful: ${isSuccessful}, uuid: ${characteristic?.uuid} and value: ${characteristic?.value} and value size: ${characteristic?.value?.size}")
+    if(bluetoothDevice == device) {
+      val isSuccessful = gattServer.sendResponse(
+        device,
+        requestId,
+        BluetoothGatt.GATT_SUCCESS,
+        offset,
+        characteristic?.value
+      )
+      Log.d(
+        logTag,
+        "onCharacteristicReadRequest: isSuccessful: ${isSuccessful}, uuid: ${characteristic?.uuid} and value: ${characteristic?.value} and value size: ${characteristic?.value?.size}"
+      )
+    }else {
+      Log.e(
+        logTag,
+        "The request is coming from different bluetooth device. Ignoring the request. Request from device : $device. Current connected device: $bluetoothDevice "
+      )
+    }
   }
 
   override fun onDescriptorWriteRequest(
@@ -126,8 +150,16 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     offset: Int,
     value: ByteArray?
   ) {
-    if (responseNeeded) {
-      gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
+    if(device == bluetoothDevice) {
+      if (responseNeeded) {
+        gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
+      }
+    }
+    else {
+      Log.e(
+        logTag,
+        "The request is coming from different bluetooth device. Ignoring the request. Request from device : $device. Current connected device: $bluetoothDevice "
+      )
     }
   }
 
