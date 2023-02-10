@@ -63,8 +63,6 @@ class Openid4vpBle: RCTEventEmitter {
     @objc
     func send(_ message: String, withCallback callback: @escaping RCTResponseSenderBlock) {
         let messageComponents = message.components(separatedBy: "\n")
-        print("new message is :::: ", messageComponents)
-        
         switch messageComponents[0] {
         case "exchange-receiver-info":
             print("EXCHANGE-RECEIVER-INFO")

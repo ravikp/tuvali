@@ -225,6 +225,7 @@ class Verifier(
   override fun onResponseReceived(data: ByteArray) {
 //    Log.d(logTag, "dataInBytes size: ${data.size}, sha256: ${Util.getSha256(data)}")
     try {
+      Log.d(logTag, "data sha256: ${Util.getSha256(data)}, data size: ${data.size}")
       val decryptedData = secretsTranslator?.decryptUponReceive(data)
       if (decryptedData != null) {
         Log.d(logTag, "decryptedData size: ${decryptedData.size}")

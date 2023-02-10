@@ -6,7 +6,7 @@ import os
 class Central: NSObject, CBCentralManagerDelegate {
 
     var retryStrategy : BackOffStrategy = BackOffStrategy(MAX_RETRY_LIMIT: 10)
-    
+
     private var centralManager: CBCentralManager!
     var connectedPeripheral: CBPeripheral?
     var cbCharacteristics: [String: CBCharacteristic] = [:]
@@ -29,7 +29,7 @@ class Central: NSObject, CBCentralManagerDelegate {
     deinit {
         print("Central is DeInitializing")
     }
-    
+
     func connectToPeripheral(peripheral: CBPeripheral) {
         self.connectedPeripheral = peripheral
         self.connectedPeripheral?.delegate = self
@@ -40,7 +40,6 @@ class Central: NSObject, CBCentralManagerDelegate {
 
     func scanForPeripherals() {
         centralManager.scanForPeripherals(withServices: [Peripheral.SERVICE_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
-        os_log("scanning happening ::::::::")
     }
 
     /**
@@ -70,7 +69,6 @@ class Central: NSObject, CBCentralManagerDelegate {
             }
             let messageData = Data(bytes: Array(data), count: data.count)
             connectedPeripheral.writeValue(messageData, for: characteristic, type: .withoutResponse)
-            print("wrote some data without resp")
         }
     }
 }

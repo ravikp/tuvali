@@ -72,6 +72,7 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
         Log.i(logTag, "response transfer complete in ${System.currentTimeMillis() - responseStartTimeInMillis}ms")
         val responseTransferCompleteMessage = msg.obj as ResponseTransferCompleteMessage
         transferListener.onResponseReceived(responseTransferCompleteMessage.data)
+        Log.i(logTag, "returned from decrypt & sent a message")
         currentState = States.TransferComplete
       }
       IMessage.TransferMessageTypes.RESPONSE_TRANSFER_FAILED.ordinal -> {
