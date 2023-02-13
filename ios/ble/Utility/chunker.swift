@@ -113,14 +113,6 @@ class Chunker {
        return isComplete
     }
 
-//    func intToTwoBytesBigEndian(num: Int) -> [UInt8] {
-//        if num < 256 {
-//            let minValue: UInt8 = 0
-//            return [minValue, UInt8(num)]
-//        }
-//        return [UInt8(num/256), UInt8(num%256)]
-//    }
-
     func intToBytes(_ value: UInt16) -> Data {
         var value = value.bigEndian
         return Data(bytes: &value, count: MemoryLayout<UInt16>.size)
