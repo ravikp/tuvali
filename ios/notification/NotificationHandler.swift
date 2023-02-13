@@ -1,11 +1,3 @@
-//
-//  NotificationHandler.swift
-//  Openid4vpBle
-//
-//  Created by krishnakumart on 08/02/23.
-//  Copyright © 2023 Facebook. All rights reserved.
-//
-
 import Foundation
 
 // Notification handler is created on connection
