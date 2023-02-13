@@ -57,6 +57,7 @@ class Openid4vpBle: RCTEventEmitter {
         wallet?.destroyConnection()
         callback([])
         wallet = nil
+
         return "check" as! Any
     }
 
@@ -70,11 +71,15 @@ class Openid4vpBle: RCTEventEmitter {
         case "exchange-sender-info":
             print("EXCHANGE-SENDER-INFO")
             callback([])
-            wallet?.writeIdentity()
+            wallet?.writeToIdentifyRequest()
         case "send-vc":
             callback([])
             print(">> raw message size", messageComponents[1].count)
             wallet?.sendData(data: messageComponents[1])
+        case "onDisconnected":
+            callback([])
+            print("onDisconnected")
+            wallet?.lookForDestroyConnection()
         default:
             print("DEFAULT SEND: MESSAGE:: ", message)
         }

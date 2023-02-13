@@ -96,7 +96,7 @@ class Chunker {
         if let chunkData = chunkData {
             let payload = chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
             let payloadCRC = CRC.evaluate(d: payload)
-            return intToBytes(UInt16(seqNumber)) + intToBytes(payloadCRC) + payload
+            return Utils.intToBytes(UInt16(seqNumber)) + Utils.intToBytes(payloadCRC) + payload
         }
         return Data() //
     }
@@ -117,9 +117,5 @@ class Chunker {
 //        return [UInt8(num/256), UInt8(num%256)]
 //    }
 
-    func intToBytes(_ value: UInt16) -> Data {
-        var value = value.bigEndian
-        return Data(bytes: &value, count: MemoryLayout<UInt16>.size)
-    }
 }
 

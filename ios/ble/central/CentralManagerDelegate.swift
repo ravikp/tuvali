@@ -35,7 +35,10 @@ extension Central {
     
     func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
         os_log("Peripheral disconnected")
-        self.connectedPeripheral = nil
+        if let connectedPeripheral = connectedPeripheral {
+            central.cancelPeripheralConnection(connectedPeripheral)
+        }
+        NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.ON_PERIPHERAL_DISCONNECTED.rawValue), object: nil)
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {

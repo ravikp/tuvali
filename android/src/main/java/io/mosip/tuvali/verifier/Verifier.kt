@@ -10,17 +10,17 @@ import io.mosip.tuvali.cryptography.SecretsTranslator
 import io.mosip.tuvali.cryptography.VerifierCryptoBox
 import io.mosip.tuvali.cryptography.VerifierCryptoBoxBuilder
 import com.facebook.react.bridge.Callback
+import io.mosip.tuvali.transfer.TransferReportRequest
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
-import io.mosip.tuvali.transfer.Semaphore
+import io.mosip.tuvali.transfer.CheckValue
+import io.mosip.tuvali.transfer.DEFAULT_CHUNK_SIZE
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.transfer.ITransferListener
 import io.mosip.tuvali.verifier.transfer.TransferHandler
 import io.mosip.tuvali.verifier.transfer.message.*
-import org.bouncycastle.crypto.InvalidCipherTextException
 import org.bouncycastle.util.encoders.Hex
 import java.security.SecureRandom
 import java.util.*
-
 
 class Verifier(
   context: Context,
@@ -38,6 +38,7 @@ class Verifier(
   private var peripheral: Peripheral
   private var transferHandler: TransferHandler
   private val handlerThread = HandlerThread("TransferHandlerThread", THREAD_PRIORITY_DEFAULT)
+  private var negotiatedMTUSize = DEFAULT_CHUNK_SIZE
 
   //TODO: Update UUIDs as per specification
   companion object {
@@ -121,8 +122,13 @@ class Verifier(
 
   override fun onReceivedWrite(uuid: UUID, value: ByteArray?) {
     when (uuid) {
-      GattService.IDENTITY_CHARACTERISTIC_UUID -> {
+      GattService.IDENTIFY_REQUEST_CHAR_UUID -> {
         value?.let {
+          val crcValueReceived = Util.twoBytesToIntBigEndian(value.copyOfRange(44,46)).toUShort()
+          if(!CheckValue.verify(value.copyOfRange(0,44), crcValueReceived)){
+            Log.e(logTag, "CRC check failed. Received CRC: $crcValueReceived")
+            //TODO: CRC Error Handling
+          }
           // Total size of identity char value will be 12 bytes IV + 32 bytes pub key
           if (value.size < 12 + 32) {
             return
@@ -144,18 +150,18 @@ class Verifier(
           peripheral.stopAdvertisement()
         }
       }
-      GattService.SEMAPHORE_CHAR_UUID -> {
+      GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
         value?.let {
           if (value.isEmpty()) {
             return
           }
-          val semaphoreValue = value[0].toInt()
-          if (semaphoreValue == Semaphore.SemaphoreMarker.RequestReport.ordinal) {
+          val receivedReportType = value[0].toInt()
+          if (receivedReportType == TransferReportRequest.ReportType.RequestReport.ordinal) {
             val remoteRequestedTransferReportMessage =
-              RemoteRequestedTransferReportMessage(semaphoreValue)
+              RemoteRequestedTransferReportMessage(receivedReportType)
             transferHandler.sendMessage(remoteRequestedTransferReportMessage)
-          } else if (semaphoreValue == Semaphore.SemaphoreMarker.Error.ordinal) {
-            onResponseReceivedFailed("received error on semaphore from remote")
+          } else if (receivedReportType == TransferReportRequest.ReportType.Error.ordinal) {
+            onResponseReceivedFailed("received error on transfer Report request from remote")
           }
         }
       }
@@ -164,11 +170,11 @@ class Verifier(
           Log.d(logTag, "received response size on characteristic value: ${String(value)}")
           val responseSize: Int = String(value).toInt()
           Log.d(logTag, "received response size on characteristic: $responseSize")
-          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSize)
+          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSize, negotiatedMTUSize)
           transferHandler.sendMessage(responseSizeReadSuccessMessage)
         }
       }
-      GattService.RESPONSE_CHAR_UUID -> {
+      GattService.SUBMIT_RESPONSE_CHAR_UUID -> {
         if (value != null) {
           Log.d(logTag, "received response chunk on characteristic of size: ${value.size}")
           transferHandler.sendMessage(ResponseChunkReceivedMessage(value))
@@ -179,7 +185,7 @@ class Verifier(
 
   override fun onSendDataNotified(uuid: UUID, isSent: Boolean) {
     when (uuid) {
-      GattService.SEMAPHORE_CHAR_UUID -> {
+      GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
         //TODO: Can re-send report if failed to send notification with exponential backoff
         Log.d(logTag, "transfer summary report notification sent status $isSent on uuid: $uuid")
       }
@@ -213,6 +219,11 @@ class Verifier(
       it()
       callbacks.remove(PeripheralCallbacks.DEVICE_CONNECTED_CALLBACK)
     }
+  }
+
+  override fun onMTUChanged(mtu: Int) {
+    Log.d(logTag, "onMTUChanged: $mtu bytes")
+    negotiatedMTUSize = mtu
   }
 
   override fun onDeviceNotConnected(isManualDisconnect: Boolean, isConnected: Boolean) {

@@ -42,13 +42,13 @@ extension Central: CBPeripheralDelegate {
         for characteristic in serviceCharacteristics {
             // store a reference to the discovered characteristic in the Central for write.
             print("Characteristic UUID:: ", characteristic.uuid.uuidString)
-            if characteristic.uuid == NetworkCharNums.responseCharacteristic {
+            if characteristic.uuid == NetworkCharNums.SUBMIT_RESPONSE_CHAR_UUID {
                 // BLEConstants.DEFAULT_CHUNK_SIZE = peripheral.maximumWriteValueLength(for: .withoutResponse)
             }
             self.cbCharacteristics[characteristic.uuid.uuidString] = characteristic
-            // subscribe to the characteristics for (2035, 2036, 2037)
-            if characteristic.uuid == NetworkCharNums.semaphoreCharacteristic ||
-                characteristic.uuid == NetworkCharNums.verificationStatusCharacteristic
+            // subscribe to the characteristics for (2036, 2037)
+            if characteristic.uuid == NetworkCharNums.TRANSFER_REPORT_RESPONSE_CHAR_UUID ||
+                characteristic.uuid == NetworkCharNums.VERIFICATION_STATUS_CHAR_UUID || characteristic.uuid == NetworkCharNums.DISCONNECT_CHAR_UUID
             {
                 peripheral.setNotifyValue(true, for: characteristic)
             }
@@ -95,21 +95,21 @@ extension Central: CBPeripheralDelegate {
             os_log("Unable to recieve updates from device: %s", error.localizedDescription)
             return
         }
+
         switch characteristic.uuid {
-        case NetworkCharNums.semaphoreCharacteristic:
+        case NetworkCharNums.TRANSFER_REPORT_RESPONSE_CHAR_UUID:
             let report = characteristic.value as Data?
             print("CBPeripheral: received transfer summary report: ", report)
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.HANDLE_TRANSMISSION_REPORT.rawValue), object: nil, userInfo: ["report": report])
 
-        case NetworkCharNums.verificationStatusCharacteristic:
+        case NetworkCharNums.VERIFICATION_STATUS_CHAR_UUID:
             let verificationStatus = characteristic.value as Data?
             print("CBPeripheral: received verification status: ", verificationStatus)
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.VERIFICATION_STATUS_RESPONSE.rawValue), object: nil, userInfo: ["status": verificationStatus])
 
-        case NetworkCharNums.connectionStatusChangeCharacteristic:
-            let connectionStatus = characteristic.value as Data?
-            print("CBPeripheral: received connection status change: ", connectionStatus)
-            NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.CONNECTION_STATUS_CHANGE.rawValue), object: nil, userInfo: ["connectionStatus": connectionStatus])
+        case NetworkCharNums.DISCONNECT_CHAR_UUID:
+            let disconnectStatus = characteristic.value as Data?
+            NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.DISCONNECT_STATUS_CHANGE.rawValue), object: nil, userInfo: ["disconnectStatus": disconnectStatus])
         default:
             print("CBPeripheral: received update on \(characteristic)")
         }
@@ -121,16 +121,16 @@ extension Central: CBPeripheralDelegate {
             print("unable to write to characteristic \(characteristic): %@", error.localizedDescription)
         }
         switch characteristic.uuid {
-        case NetworkCharNums.identifyRequestCharacteristic:
+        case NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID:
             print("CBPeripheral: received callback for identity char write")
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.EXCHANGE_RECEIVER_INFO.rawValue), object: nil)
-        case NetworkCharNums.responseSizeCharacteristic:
+        case NetworkCharNums.RESPONSE_SIZE_CHAR_UUID:
             print("CBPeripheral: received callback for response size char write")
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.RESPONSE_SIZE_WRITE_SUCCESS.rawValue), object: nil)
-        case NetworkCharNums.responseCharacteristic:
+        case NetworkCharNums.SUBMIT_RESPONSE_CHAR_UUID:
             print("CBPeripheral: received callback for response char write")
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.INIT_RESPONSE_CHUNK_TRANSFER.rawValue), object: nil)
-        case NetworkCharNums.semaphoreCharacteristic:
+        case NetworkCharNums.TRANSFER_REPORT_RESPONSE_CHAR_UUID:
             let report = characteristic.value as Data?
             print("CBPeripheral: received transfer summary report: ", report)
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.HANDLE_TRANSMISSION_REPORT.rawValue), object: nil, userInfo: ["report": report])
