@@ -271,7 +271,7 @@ class Wallet(
     when (charUUID) {
       UUIDConstants.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
         value?.let {
-          transferHandler.sendMessage(HandleTransmissionReportMessage(TransferReport(it)))
+          transferHandler.sendMessage(HandleTransferReportMessage(TransferReport(it)))
         }
       }
       UUIDConstants.VERIFICATION_STATUS_CHAR_UUID -> {

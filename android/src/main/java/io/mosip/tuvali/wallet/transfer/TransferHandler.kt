@@ -6,7 +6,6 @@ import android.os.Message
 import android.util.Log
 import io.mosip.tuvali.ble.central.Central
 import io.mosip.tuvali.transfer.*
-import io.mosip.tuvali.verifier.GattService
 import io.mosip.tuvali.verifier.UUIDConstants
 import io.mosip.tuvali.wallet.transfer.message.*
 import java.util.*
@@ -68,14 +67,14 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
         currentState = States.ResponseWritePending
         sendResponseChunk()
       }
-      IMessage.TransferMessageTypes.READ_TRANSMISSION_REPORT.ordinal -> {
+      IMessage.TransferMessageTypes.READ_TRANSFER_REPORT.ordinal -> {
         currentState = States.WaitingForTransferReport
-        requestTransmissionReport()
+        requestTransferReport()
       }
-      IMessage.TransferMessageTypes.HANDLE_TRANSMISSION_REPORT.ordinal -> {
+      IMessage.TransferMessageTypes.HANDLE_TRANSFER_REPORT.ordinal -> {
         currentState = States.HandlingTransferReport
-        val handleTransmissionReportMessage = msg.obj as HandleTransmissionReportMessage
-        handleTransmissionReport(handleTransmissionReportMessage.report)
+        val handleTransferReportMessage = msg.obj as HandleTransferReportMessage
+        handleTransferReport(handleTransferReportMessage.report)
       }
       IMessage.TransferMessageTypes.RESPONSE_CHUNK_WRITE_SUCCESS.ordinal -> {
         if(isRetryFrame) {
@@ -92,7 +91,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
       IMessage.TransferMessageTypes.RESPONSE_TRANSFER_COMPLETE.ordinal -> {
         // TODO: Let higher level know
         currentState = States.TransferComplete
-        this.sendMessage(ReadTransmissionReportMessage())
+        this.sendMessage(ReadTransferReportMessage())
       }
       IMessage.TransferMessageTypes.RESPONSE_TRANSFER_FAILED.ordinal -> {
         val responseTransferFailureMessage = msg.obj as ResponseTransferFailureMessage
@@ -111,13 +110,13 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
 
   private fun sendRetryResponseChunk() {
     if (retryChunker.isComplete()) {
-      this.sendMessage(ReadTransmissionReportMessage())
+      this.sendMessage(ReadTransferReportMessage())
     } else {
       writeResponseChunk(retryChunker.next())
     }
   }
 
-  private fun handleTransmissionReport(report: TransferReport) {
+  private fun handleTransferReport(report: TransferReport) {
     if (report.type == TransferReport.ReportType.SUCCESS) {
       currentState = States.TransferVerified
       transferListener.onResponseSent()
@@ -130,7 +129,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
     }
   }
 
-  private fun requestTransmissionReport() {
+  private fun requestTransferReport() {
     central.write(serviceUUID, UUIDConstants.TRANSFER_REPORT_REQUEST_CHAR_UUID, byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte()))
   }
 

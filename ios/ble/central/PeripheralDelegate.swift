@@ -98,7 +98,7 @@ extension Central: CBPeripheralDelegate {
             let report = characteristic.value as Data?
             print("ts report is :::", report)
             // TODO: figure out why object isn't sent out across
-            NotificationCenter.default.post(name: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, userInfo: ["report": report])
+            NotificationCenter.default.post(name: Notification.Name(rawValue: "HANDLE_TRANSFER_REPORT"), object: nil, userInfo: ["report": report])
         } else if characteristic.uuid == UUIDConstants.NetworkCharNums.VERIFICATION_STATUS_CHAR_UUID {
             let verificationStatus = characteristic.value as Data?
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.VERIFICATION_STATUS_RESPONSE.rawValue), object: nil, userInfo: ["status": verificationStatus])

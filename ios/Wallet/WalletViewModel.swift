@@ -32,8 +32,8 @@ struct WalletViewModel {
     }
 
     @available(iOS 13.0, *)
-    mutating func writeIdentity() {
-        print("::: write idendity called ::: ")
+    mutating func writeToIdentifyRequest() {
+        print("::: write to identify request is called ::: ")
         let publicKey = WalletCryptoBoxImpl().getPublicKey()
         print("verifier pub key:::", BLEConstants.verifierPublicKey)
         secretTranslators = WalletCryptoBoxImpl().buildSecretsTranslator(verifierPublicKey: BLEConstants.verifierPublicKey)
