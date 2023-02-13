@@ -13,20 +13,22 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
   private lateinit var gattServer: BluetoothGattServer
   private var bluetoothDevice: BluetoothDevice? = null
 
+  private lateinit var onMTUChangedCallback: (Int) -> Unit
   private lateinit var onServiceAddedCallback: (Int) -> Unit
   private lateinit var onDeviceConnectedCallback: (Int, Int) -> Unit
   private lateinit var onDeviceNotConnectedCallback: (Int, Int) -> Unit
   private lateinit var onReceivedWriteCallback: (BluetoothGattCharacteristic?, ByteArray?) -> Unit
 
-
   fun start(
     onDeviceConnected: (Int, Int) -> Unit,
     onDeviceNotConnected: (Int, Int) -> Unit,
-    onReceivedWrite: (BluetoothGattCharacteristic?, ByteArray?) -> Unit
+    onReceivedWrite: (BluetoothGattCharacteristic?, ByteArray?) -> Unit,
+    onMTUChanged: (Int)  -> Unit
   ) {
     onDeviceConnectedCallback = onDeviceConnected
     onDeviceNotConnectedCallback = onDeviceNotConnected
     onReceivedWriteCallback = onReceivedWrite
+    onMTUChangedCallback = onMTUChanged
     val bluetoothManager: BluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
     gattServer = bluetoothManager.openGattServer(context, this@GattServer)
   }
@@ -54,8 +56,11 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
   }
 
   override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
-    Log.d(logTag, "onConnectionStateChange: status: $status, newState: $newState, device: $device, deviceHash: ${device.hashCode()}, deviceBondState: ${device?.bondState}")
-    bluetoothDevice = if(newState == BluetoothProfile.STATE_CONNECTED){
+    Log.d(
+      logTag,
+      "onConnectionStateChange: status: $status, newState: $newState, device: $device, deviceHash: ${device.hashCode()}, deviceBondState: ${device?.bondState}"
+    )
+    bluetoothDevice = if (newState == BluetoothProfile.STATE_CONNECTED) {
       // Required by Android SDK to connect from peripheral side
       val connect = gattServer.connect(device, false)
       Log.d(logTag, "connecting from Peripheral to central: $connect")
@@ -67,6 +72,11 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
       onDeviceNotConnectedCallback(status, newState)
       null
     }
+  }
+
+  override fun onMtuChanged(device: BluetoothDevice?, mtu: Int) {
+    Log.d(logTag, "onMtuChanged: mtu: $mtu, device: $device")
+    onMTUChangedCallback(mtu)
   }
 
   private fun setPhy(bluetoothDevice: BluetoothDevice) {
@@ -86,11 +96,22 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     offset: Int,
     value: ByteArray?
   ) {
-    Log.d(logTag, "onCharacteristicWriteRequest: requestId: ${requestId}, preparedWrite: ${preparedWrite}, responseNeeded: ${responseNeeded}, offset: ${offset}, dataSize: ${value?.size}")
-    onReceivedWriteCallback(characteristic, value)
-    if (responseNeeded) {
-      val response = gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
-      Log.d(logTag, "onCharacteristicWriteRequest: didResponseSent: ${response}")
+    if (device == bluetoothDevice) {
+      Log.d(
+        logTag,
+        "onCharacteristicWriteRequest: requestId: ${requestId}, preparedWrite: ${preparedWrite}, responseNeeded: ${responseNeeded}, offset: ${offset}, dataSize: ${value?.size}"
+      )
+      onReceivedWriteCallback(characteristic, value)
+      if (responseNeeded) {
+        val response =
+          gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
+        Log.d(logTag, "onCharacteristicWriteRequest: didResponseSent: ${response}")
+      }
+    } else {
+      Log.e(
+        logTag,
+        "The request is coming from different bluetooth device. Ignoring the request. Request from device : $device. Current connected device: $bluetoothDevice "
+      )
     }
   }
 
@@ -100,14 +121,24 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     offset: Int,
     characteristic: BluetoothGattCharacteristic?
   ) {
-    val isSuccessful = gattServer.sendResponse(
-      device,
-      requestId,
-      BluetoothGatt.GATT_SUCCESS,
-      offset,
-      characteristic?.value
-    )
-    Log.d(logTag, "onCharacteristicReadRequest: isSuccessful: ${isSuccessful}, uuid: ${characteristic?.uuid} and value: ${characteristic?.value} and value size: ${characteristic?.value?.size}")
+    if(bluetoothDevice == device) {
+      val isSuccessful = gattServer.sendResponse(
+        device,
+        requestId,
+        BluetoothGatt.GATT_SUCCESS,
+        offset,
+        characteristic?.value
+      )
+      Log.d(
+        logTag,
+        "onCharacteristicReadRequest: isSuccessful: ${isSuccessful}, uuid: ${characteristic?.uuid} and value: ${characteristic?.value} and value size: ${characteristic?.value?.size}"
+      )
+    }else {
+      Log.e(
+        logTag,
+        "The request is coming from different bluetooth device. Ignoring the request. Request from device : $device. Current connected device: $bluetoothDevice "
+      )
+    }
   }
 
   override fun onDescriptorWriteRequest(
@@ -119,8 +150,16 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     offset: Int,
     value: ByteArray?
   ) {
-    if (responseNeeded) {
-      gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
+    if(device == bluetoothDevice) {
+      if (responseNeeded) {
+        gattServer.sendResponse(device, requestId, BluetoothGatt.GATT_SUCCESS, 0, null)
+      }
+    }
+    else {
+      Log.e(
+        logTag,
+        "The request is coming from different bluetooth device. Ignoring the request. Request from device : $device. Current connected device: $bluetoothDevice "
+      )
     }
   }
 

@@ -15,6 +15,7 @@ import io.mosip.tuvali.cryptography.WalletCryptoBoxBuilder
 import com.facebook.react.bridge.Callback
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
 import io.mosip.tuvali.retrymechanism.lib.BackOffStrategy
+import io.mosip.tuvali.transfer.CheckValue
 import io.mosip.tuvali.transfer.TransferReport
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.UUIDConstants
@@ -43,7 +44,7 @@ class Wallet(
   private val handlerThread = HandlerThread("TransferHandlerThread", Process.THREAD_PRIORITY_DEFAULT)
 
   private var central: Central
-  private val maxMTU = 517
+  private val maxMTU = 185
 
   private val retryDiscoverServices = BackOffStrategy(maxRetryLimit = 5)
 
@@ -78,10 +79,12 @@ class Wallet(
     val publicKey = walletCryptoBox.publicKey()
     secretsTranslator = walletCryptoBox.buildSecretsTranslator(verifierPK)
     val iv = secretsTranslator?.initializationVector()
+    val data = iv!! + publicKey!!
+    val crcValue = CheckValue.get(data)
     central.write(
       UUIDConstants.SERVICE_UUID,
       UUIDConstants.IDENTIFY_REQUEST_CHAR_UUID,
-      iv!! + publicKey!!
+      data + Util.intToTwoBytesBigEndian(crcValue.toInt())
     )
     Log.d(
       logTag,
