@@ -110,7 +110,7 @@ class Wallet: NSObject {
             return
         }
         var iv = (self.secretTranslator?.initializationVector())!
-        central?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: iv + publicKey)
+        central?.write(serviceUuid: UUIDConstants.SERVICE_UUID, charUUID: UUIDConstants.NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: iv + publicKey)
         registerCallbackForEvent(event: NotificationEvent.EXCHANGE_RECEIVER_INFO) { notification in
             EventEmitter.sharedInstance.emitNearbyMessage(event: "exchange-receiver-info", data: Self.EXCHANGE_RECEIVER_INFO_DATA)
         }

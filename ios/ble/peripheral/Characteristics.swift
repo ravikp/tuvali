@@ -5,59 +5,35 @@ typealias CharacteristicTuple = (properties: CBCharacteristicProperties, permiss
 
 struct CBcharatcteristic {
 
-    let identifyRequestChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue]!.permissions)
+    let identifyRequestChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue]!.permissions)
 
-    let requestSizeChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue]!.permissions)
+    let requestSizeChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue]!.permissions)
 
-    let requestChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.REQUEST_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.REQUEST_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[CharacteristicIds.REQUEST_CHAR_UUID.rawValue]!.permissions)
+    let requestChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.REQUEST_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.REQUEST_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.REQUEST_CHAR_UUID.rawValue]!.permissions)
 
-    let responseSizeChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue]!.permissions)
+    let responseSizeChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue]!.properties, value: nil, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue]!.permissions)
 
-    let submitResponseChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue]!.permissions)
+    let submitResponseChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[UUIDConstants.CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue]!.permissions)
 
-    let transferReportRequestChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue]!.permissions)
+    let transferReportRequestChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[UUIDConstants.CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue]!.permissions)
 
-    let transferReportResponseChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue]!.permissions)
+    let transferReportResponseChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[UUIDConstants.CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue]!.permissions)
 
-    let verificationStatusChar = CBMutableCharacteristic(type: CBUUID(string: CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue), properties: characteristicsMap[CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue]!.permissions)
+    let verificationStatusChar = CBMutableCharacteristic(type: CBUUID(string: UUIDConstants.CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue), properties: characteristicsMap[UUIDConstants.CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue]!.properties, value: characteristicsMap[UUIDConstants.CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue]!.value, permissions: characteristicsMap[UUIDConstants.CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue]!.permissions)
 }
 
 // TODO: Add conn status change everywhere
 
-enum CharacteristicIds: String, CaseIterable {
-    case IDENTIFY_REQUEST_CHAR_UUID = "00000006-5026-444A-9E0E-D6F2450F3A77"
-    case REQUEST_SIZE_CHAR_UUID = "00000004-5026-444A-9E0E-D6F2450F3A77"
-    case REQUEST_CHAR_UUID = "00000005-5026-444A-9E0E-D6F2450F3A77"
-    case RESPONSE_SIZE_CHAR_UUID = "00000007-5026-444A-9E0E-D6F2450F3A77"
-    case SUBMIT_RESPONSE_CHAR_UUID = "00000008-5026-444A-9E0E-D6F2450F3A77"
-    case TRANSFER_REPORT_REQUEST_CHAR_UUID = "00000009-5026-444A-9E0E-D6F2450F3A77"
-    case TRANSFER_REPORT_RESPONSE_CHAR_UUID = "0000000A-5026-444A-9E0E-D6F2450F3A77"
-    case VERIFICATION_STATUS_CHAR_UUID = "0000000F-5026-444A-9E0E-D6F2450F3A77"
-    case DISCONNECT_CHAR_UUID = "0000000B-5026-444A-9E0E-D6F2450F3A77"
-}
-
 let characteristicsMap: [String: CharacteristicTuple] = [
-    CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse, .write]), permissions: CBAttributePermissions([.writeable]), value: nil),
-    CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.read, .indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
-    CharacteristicIds.REQUEST_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.read, .indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
-    CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse, .write]), permissions: CBAttributePermissions([.writeable]), value: nil),
-    CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse, .write]), permissions: CBAttributePermissions([.writeable]), value: nil),
-    CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse]), permissions: CBAttributePermissions([.writeable]), value: nil),
-    CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
-    CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
+    UUIDConstants.CharacteristicIds.IDENTIFY_REQUEST_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse, .write]), permissions: CBAttributePermissions([.writeable]), value: nil),
+    UUIDConstants.CharacteristicIds.REQUEST_SIZE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.read, .indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
+    UUIDConstants.CharacteristicIds.REQUEST_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.read, .indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
+    UUIDConstants.CharacteristicIds.RESPONSE_SIZE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse, .write]), permissions: CBAttributePermissions([.writeable]), value: nil),
+    UUIDConstants.CharacteristicIds.SUBMIT_RESPONSE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse, .write]), permissions: CBAttributePermissions([.writeable]), value: nil),
+    UUIDConstants.CharacteristicIds.TRANSFER_REPORT_REQUEST_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.writeWithoutResponse]), permissions: CBAttributePermissions([.writeable]), value: nil),
+    UUIDConstants.CharacteristicIds.TRANSFER_REPORT_RESPONSE_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
+    UUIDConstants.CharacteristicIds.VERIFICATION_STATUS_CHAR_UUID.rawValue : (properties: CBCharacteristicProperties([.indicate]), permissions: CBAttributePermissions([.readable]), value: nil),
 ]
-
-struct NetworkCharNums {
-    static let IDENTIFY_REQUEST_CHAR_UUID = CBUUID(string: "00000006-5026-444A-9E0E-D6F2450F3A77")
-    static let REQUEST_SIZE_CHAR_UUID = CBUUID(string: "00000004-5026-444A-9E0E-D6F2450F3A77")
-    static let REQUEST_CHAR_UUID = CBUUID(string: "00000005-5026-444A-9E0E-D6F2450F3A77")
-    static let RESPONSE_SIZE_CHAR_UUID = CBUUID(string: "00000007-5026-444A-9E0E-D6F2450F3A77")
-    static let SUBMIT_RESPONSE_CHAR_UUID = CBUUID(string: "00000008-5026-444A-9E0E-D6F2450F3A77")
-    static let TRANSFER_REPORT_REQUEST_CHAR_UUID = CBUUID(string: "00000009-5026-444A-9E0E-D6F2450F3A77")
-    static let TRANSFER_REPORT_RESPONSE_CHAR_UUID = CBUUID(string: "0000000A-5026-444A-9E0E-D6F2450F3A77")
-    static let VERIFICATION_STATUS_CHAR_UUID = CBUUID(string: "0000000F-5026-444A-9E0E-D6F2450F3A77")
-    static let DISCONNECT_CHAR_UUID = CBUUID(string: "0000000B-5026-444A-9E0E-D6F2450F3A77")
-}
 
 enum NotificationEvent: String {
     case EXCHANGE_RECEIVER_INFO = "EXCHANGE_RECEIVER_INFO"
