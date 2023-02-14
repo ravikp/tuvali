@@ -7,7 +7,7 @@ import io.mosip.tuvali.verifier.exception.CorruptedChunkReceivedException
 class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_CHUNK_SIZE): ChunkerBase(mtuSize) {
   private val logTag = "Assembler"
   private var data: ByteArray = ByteArray(totalSize)
-  private var lastReadSeqIndex: Int? = null
+  private var lastReadSeqNumber: Int? = null
   private val totalChunkCount = getTotalChunkCount(totalSize)
   private var chunkReceivedMarker = ByteArray(totalChunkCount.toInt())
   private val chunkReceivedMarkerByte: Byte = 1
@@ -21,7 +21,7 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
 
   fun addChunk(chunkData: ByteArray): Int {
     if (chunkData.size < chunkMetaSize) {
-      Log.e(logTag, "received invalid chunk chunkSize: ${chunkData.size}, lastReadSeqIndex: $lastReadSeqIndex")
+      Log.e(logTag, "received invalid chunk chunkSize: ${chunkData.size}, lastReadSeqNumber: $lastReadSeqNumber")
       return 0
     }
     val seqNumberInMeta = twoBytesToIntBigEndian(chunkData.copyOfRange(0, 2))
@@ -32,16 +32,16 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
 
     if (chunkSizeGreaterThanMtuSize(chunkData)) {
       Log.e(logTag, "chunkSizeGreaterThanMtuSize chunkSize: ${chunkData.size}, seqNumberInMeta: $seqNumberInMeta")
-      return seqIndexInMeta
+      return seqNumberInMeta
     }
     if(crcReceivedIsNotEqualToCrcCalculated(chunkData.copyOfRange(4, chunkData.size), crcReceived)){
-      return seqIndexInMeta
+      return seqNumberInMeta
     }
-    lastReadSeqIndex = seqIndexInMeta
+    lastReadSeqNumber = seqNumberInMeta
     System.arraycopy(chunkData, chunkMetaSize, data, seqIndexInMeta * effectivePayloadSize, (chunkData.size-chunkMetaSize))
     chunkReceivedMarker[seqIndexInMeta] = chunkReceivedMarkerByte
     Log.d(logTag, "adding chunk complete at index(1-based): $seqNumberInMeta, received chunkSize: ${chunkData.size}")
-    return seqIndexInMeta
+    return seqNumberInMeta
   }
 
   private fun crcReceivedIsNotEqualToCrcCalculated(
