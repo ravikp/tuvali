@@ -30,11 +30,11 @@ class Chunker {
     func assignPreSlicedChunks(){
         print("preSlicedChunks called ::: ")
         print("expected total data size: \(chunkData?.count) and totalChunkCount: \(totalChunkCount)")
-        print(">> SHA256 \(chunkData?.sha256())")
+        //print(">> SHA256 \(chunkData?.sha256())")
         for i in 0..<totalChunkCount {
-            print(i)
+           // print(i)
             preSlicedChunks.append(chunk(seqNumber: i))
-            print(preSlicedChunks ?? [])
+            //print(preSlicedChunks ?? [])
         }
     }
 
@@ -94,11 +94,12 @@ class Chunker {
      */
 
     private func frameChunk(seqNumber: Int, chunkLength: Int, fromIndex: Int, toIndex: Int) -> Data {
-        print("fetching chunk size:",toIndex,"-", fromIndex,"}, chunkSequenceNumber(0-indexed):", seqNumber)
+        //print("fetching chunk size:",toIndex,"-", fromIndex,"}, chunkSequenceNumber(0-indexed):", seqNumber)
 //        return intToTwoBytesBigEndian(num: seqNumber) + intToTwoBytesBigEndian(num: chunkLength) + chunkData!.subdata(in: fromIndex..<toIndex)
         if let chunkData = chunkData {
             let payload = chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
             let payloadCRC = CRC.evaluate(d: payload)
+            print("SequenceNumber: \(seqNumber) , Sha256: \(payload.sha256())")
             return Utils.intToBytes(UInt16(seqNumber)) + Utils.intToBytes(payloadCRC) + payload
         }
         return Data() //
