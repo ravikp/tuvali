@@ -91,7 +91,6 @@ class Wallet: NSObject {
         var compressedBytes = try! dataInBytes.gzipped()
         var encryptedData = secretTranslator?.encryptToSend(data: compressedBytes)
         if (encryptedData != nil) {
-            print("Sha256 of Encrypted Data: \(encryptedData!.sha256())")
             DispatchQueue.main.async {
                 let transferHandler = TransferHandler.shared
                 // DOUBT: why is encrypted data written twice ?

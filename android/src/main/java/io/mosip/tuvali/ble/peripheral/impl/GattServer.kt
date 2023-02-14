@@ -97,7 +97,10 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     value: ByteArray?
   ) {
     if (device == bluetoothDevice) {
-     // Log.d(logTag, "onCharacteristicWriteRequest: requestId: ${requestId}, preparedWrite: ${preparedWrite}, responseNeeded: ${responseNeeded}, offset: ${offset}, dataSize: ${value?.size}")
+      Log.d(
+        logTag,
+        "onCharacteristicWriteRequest: requestId: ${requestId}, preparedWrite: ${preparedWrite}, responseNeeded: ${responseNeeded}, offset: ${offset}, dataSize: ${value?.size}"
+      )
       onReceivedWriteCallback(characteristic, value)
       if (responseNeeded) {
         val response =
