@@ -33,6 +33,7 @@
 		E25800A42976BF8700968EA0 /* chunker.swift in Sources */ = {isa = PBXBuildFile; fileRef = E25800A32976BF8700968EA0 /* chunker.swift */; };
 		E2F1AFCB297176C200AC3355 /* BLEConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F1AFCA297176C200AC3355 /* BLEConstants.swift */; };
 		E2F1AFCD2971883500AC3355 /* WalletViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2F1AFCC2971883500AC3355 /* WalletViewModel.swift */; };
+		E85F51692999FDD900E77910 /* UUIDConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = E85F51682999FDD900E77910 /* UUIDConstants.swift */; };
 		F4FF95D7245B92E800C19C63 /* Openid4vpBle.swift in Sources */ = {isa = PBXBuildFile; fileRef = F4FF95D6245B92E800C19C63 /* Openid4vpBle.swift */; };
 		FDA18F3F2977B69A00290433 /* CRC16.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDA18F3E2977B69A00290433 /* CRC16.swift */; };
 		FDD9411E297FAA6B00FBBDD4 /* DataExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = FDD9411D297FAA6B00FBBDD4 /* DataExtension.swift */; };
@@ -80,6 +81,7 @@
 		E25800A32976BF8700968EA0 /* chunker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = chunker.swift; sourceTree = "<group>"; };
 		E2F1AFCA297176C200AC3355 /* BLEConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BLEConstants.swift; sourceTree = "<group>"; };
 		E2F1AFCC2971883500AC3355 /* WalletViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WalletViewModel.swift; sourceTree = "<group>"; };
+		E85F51682999FDD900E77910 /* UUIDConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UUIDConstants.swift; sourceTree = "<group>"; };
 		F4FF95D5245B92E700C19C63 /* Openid4vpBle-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Openid4vpBle-Bridging-Header.h"; sourceTree = "<group>"; };
 		F4FF95D6245B92E800C19C63 /* Openid4vpBle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Openid4vpBle.swift; sourceTree = "<group>"; };
 		FDA18F3E2977B69A00290433 /* CRC16.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CRC16.swift; sourceTree = "<group>"; };
@@ -134,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				0A62BB722938C1FA0092E47D /* Verifier.swift */,
+				E85F51682999FDD900E77910 /* UUIDConstants.swift */,
 			);
 			path = Verifier;
 			sourceTree = "<group>";
@@ -321,6 +324,7 @@
 				FDA18F3F2977B69A00290433 /* CRC16.swift in Sources */,
 				8D069F652964466900AB61A9 /* Central.swift in Sources */,
 				FDD9411E297FAA6B00FBBDD4 /* DataExtension.swift in Sources */,
+				E85F51692999FDD900E77910 /* UUIDConstants.swift in Sources */,
 				8D31C3F42956AD8B0073B710 /* KeyGenerator.swift in Sources */,
 				8D069F672964475A00AB61A9 /* CentralManagerDelegate.swift in Sources */,
 				8D069F6D2964724700AB61A9 /* Characteristics.swift in Sources */,

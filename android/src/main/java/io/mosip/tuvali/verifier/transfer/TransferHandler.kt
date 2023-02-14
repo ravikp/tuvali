@@ -10,6 +10,7 @@ import io.mosip.tuvali.transfer.TransferReportRequest
 import io.mosip.tuvali.transfer.TransferReport
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.GattService
+import io.mosip.tuvali.verifier.UUIDConstants
 import io.mosip.tuvali.verifier.exception.CorruptedChunkReceivedException
 import io.mosip.tuvali.verifier.transfer.message.*
 import java.util.*
@@ -91,7 +92,7 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
       Log.d(logTag, "success frame: transfer completed")
       val transferReport = TransferReport(TransferReport.ReportType.SUCCESS, 0, null)
       transferListener.sendDataOverNotification(
-        GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
+        UUIDConstants.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
         transferReport.toByteArray()
       )
       this.sendMessage(ResponseTransferCompleteMessage(assembler?.data()!!))
@@ -114,7 +115,7 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
     )
 
     transferListener.sendDataOverNotification(
-      GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
+      UUIDConstants.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
       transferReport.toByteArray()
     )
   }

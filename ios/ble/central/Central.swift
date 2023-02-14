@@ -32,7 +32,7 @@ class Central: NSObject, CBCentralManagerDelegate {
     }
 
     func scanForPeripherals() {
-        centralManager.scanForPeripherals(withServices: [Peripheral.SERVICE_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
+        centralManager.scanForPeripherals(withServices: [UUIDConstants.SERVICE_UUID], options: [CBCentralManagerScanOptionAllowDuplicatesKey: false])
         os_log("scanning happening ::::::::")
     }
 

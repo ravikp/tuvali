@@ -18,8 +18,7 @@ import io.mosip.tuvali.retrymechanism.lib.BackOffStrategy
 import io.mosip.tuvali.transfer.CheckValue
 import io.mosip.tuvali.transfer.TransferReport
 import io.mosip.tuvali.transfer.Util
-import io.mosip.tuvali.verifier.GattService
-import io.mosip.tuvali.verifier.Verifier
+import io.mosip.tuvali.verifier.UUIDConstants
 import io.mosip.tuvali.verifier.Verifier.Companion.DISCONNECT_STATUS
 import io.mosip.tuvali.wallet.transfer.ITransferListener
 import io.mosip.tuvali.wallet.transfer.TransferHandler
@@ -59,7 +58,7 @@ class Wallet(
   init {
     central = Central(context, this@Wallet)
     handlerThread.start()
-    transferHandler = TransferHandler(handlerThread.looper, central, Verifier.SERVICE_UUID, this@Wallet)
+    transferHandler = TransferHandler(handlerThread.looper, central, UUIDConstants.SERVICE_UUID, this@Wallet)
   }
 
   fun stop(onDestroy: Callback) {
@@ -71,7 +70,7 @@ class Wallet(
   fun startScanning(advIdentifier: String, connectionEstablishedCallback: Callback) {
     callbacks[CentralCallbacks.CONNECTION_ESTABLISHED] = connectionEstablishedCallback
     central.scan(
-      Verifier.SERVICE_UUID,
+      UUIDConstants.SERVICE_UUID,
       advIdentifier
     )
   }
@@ -83,8 +82,8 @@ class Wallet(
     val data = iv!! + publicKey!!
     val crcValue = CheckValue.get(data)
     central.write(
-      Verifier.SERVICE_UUID,
-      GattService.IDENTIFY_REQUEST_CHAR_UUID,
+      UUIDConstants.SERVICE_UUID,
+      UUIDConstants.IDENTIFY_REQUEST_CHAR_UUID,
       data + Util.intToTwoBytesBigEndian(crcValue.toInt())
     )
     Log.d(
@@ -118,8 +117,8 @@ class Wallet(
         return
       }
       val scanResponsePayload =
-        scanRecord?.getServiceData(ParcelUuid(Verifier.SCAN_RESPONSE_SERVICE_UUID))
-      val advertisementPayload = scanRecord?.getServiceData(ParcelUuid(Verifier.SERVICE_UUID))
+        scanRecord?.getServiceData(ParcelUuid(UUIDConstants.SCAN_RESPONSE_SERVICE_UUID))
+      val advertisementPayload = scanRecord?.getServiceData(ParcelUuid(UUIDConstants.SERVICE_UUID))
 
       if (advertisementPayload != null && isSameAdvIdentifier(advertisementPayload) && scanResponsePayload != null) {
         setVerifierPK(advertisementPayload, scanResponsePayload)
@@ -162,7 +161,7 @@ class Wallet(
 
   override fun onServicesDiscovered(serviceUuids: List<UUID>) {
 
-    if (serviceUuids.contains(Verifier.SERVICE_UUID)) {
+    if (serviceUuids.contains(UUIDConstants.SERVICE_UUID)) {
       retryDiscoverServices.reset()
       Log.d(logTag, "onServicesDiscovered with services - $serviceUuids")
       central.requestMTU(maxMTU)
@@ -190,7 +189,7 @@ class Wallet(
     Log.d(logTag, "onRequestMTUSuccess")
     //TODO: Can we pass this MTU value to chunker, would this callback always come?
     val connectionEstablishedCallBack = callbacks[CentralCallbacks.CONNECTION_ESTABLISHED]
-    central.subscribe(Verifier.SERVICE_UUID, GattService.DISCONNECT_CHAR_UUID)
+    central.subscribe(UUIDConstants.SERVICE_UUID, UUIDConstants.DISCONNECT_CHAR_UUID)
 
     connectionEstablishedCallBack?.let {
       it()
@@ -230,10 +229,10 @@ class Wallet(
     Log.d(logTag, "Failed to write char: $charUUID with error code: $err")
 
     when(charUUID) {
-      GattService.SUBMIT_RESPONSE_CHAR_UUID -> {
+      UUIDConstants.SUBMIT_RESPONSE_CHAR_UUID -> {
         transferHandler.sendMessage(ResponseChunkWriteFailureMessage(err))
       }
-      GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
+      UUIDConstants.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
       transferHandler.sendMessage(ResponseTransferFailureMessage("Failed to request report with err: $err"))
       }
     }
@@ -244,18 +243,18 @@ class Wallet(
   override fun onWriteSuccess(device: BluetoothDevice, charUUID: UUID) {
     Log.d(logTag, "Wrote to $charUUID successfully")
     when (charUUID) {
-      GattService.IDENTIFY_REQUEST_CHAR_UUID -> {
+      UUIDConstants.IDENTIFY_REQUEST_CHAR_UUID -> {
         messageResponseListener(Openid4vpBleModule.NearbyEvents.EXCHANGE_RECEIVER_INFO.value, "{\"deviceName\": \"Verifier\"}")
       }
-      GattService.RESPONSE_SIZE_CHAR_UUID -> {
+      UUIDConstants.RESPONSE_SIZE_CHAR_UUID -> {
         transferHandler.sendMessage(ResponseSizeWriteSuccessMessage())
       }
-      GattService.SUBMIT_RESPONSE_CHAR_UUID -> {
+      UUIDConstants.SUBMIT_RESPONSE_CHAR_UUID -> {
         transferHandler.sendMessage(ResponseChunkWriteSuccessMessage())
       }
-      GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
-        central.subscribe(Verifier.SERVICE_UUID, GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID)
-        central.subscribe(Verifier.SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID)
+      UUIDConstants.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
+        central.subscribe(UUIDConstants.SERVICE_UUID, UUIDConstants.TRANSFER_REPORT_RESPONSE_CHAR_UUID)
+        central.subscribe(UUIDConstants.SERVICE_UUID, UUIDConstants.VERIFICATION_STATUS_CHAR_UUID)
       }
     }
   }
@@ -270,12 +269,12 @@ class Wallet(
 
   override fun onNotificationReceived(charUUID: UUID, value: ByteArray?) {
     when (charUUID) {
-      GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
+      UUIDConstants.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
         value?.let {
-          transferHandler.sendMessage(HandleTransmissionReportMessage(TransferReport(it)))
+          transferHandler.sendMessage(HandleTransferReportMessage(TransferReport(it)))
         }
       }
-      GattService.VERIFICATION_STATUS_CHAR_UUID -> {
+      UUIDConstants.VERIFICATION_STATUS_CHAR_UUID -> {
         val status = value?.get(0)?.toInt()
         if(status != null && status == TransferHandler.VerificationStates.ACCEPTED.ordinal) {
           messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.ACCEPTED.value)
@@ -283,14 +282,14 @@ class Wallet(
           messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.REJECTED.value)
         }
 
-        central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
+        central.unsubscribe(UUIDConstants.SERVICE_UUID, charUUID)
         central.disconnectAndClose()
       }
-      GattService.DISCONNECT_CHAR_UUID -> {
+      UUIDConstants.DISCONNECT_CHAR_UUID -> {
         val status = value?.get(0)?.toInt()
 
         if(status != null && status == DISCONNECT_STATUS) {
-          central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
+          central.unsubscribe(UUIDConstants.SERVICE_UUID, charUUID)
           central.disconnectAndClose()
         }
       }
