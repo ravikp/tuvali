@@ -12,18 +12,8 @@ extension Central {
             let scanResponseData = dataDict?[CBUUID(string: "AB2A")]  as! Data
             let advertisementData = dataDict?[CBUUID(string: "AB29")]  as! Data
             print("adv data::", advertisementData, "scan resuly:::", scanResponseData)
-            // notification
             NotificationCenter.default.post(name: Notification.Name(rawValue: NotificationEvent.ON_DEVICE_DISCOVERED.rawValue),
                                             object: peripheral, userInfo: ["peripheral": peripheral, "advData": advertisementData, "scanRespData": scanResponseData])
-            
-//            let publicKeyData =  advertisementData.subdata(in: advertisementData.count-5..<advertisementData.count) + scanResponseData
-//            print("veri pub key::", publicKeyData)
-//            Wallet.buildSecretTranslator(publicKeyData: publicKeyData)
-//            if Wallet.isSameAdvIdentifier(advertisementPayload: advertisementData) {
-//                peripheral.delegate = self
-//                central.connect(peripheral)
-//                connectedPeripheral = peripheral
-//            }
         }
     }
 
