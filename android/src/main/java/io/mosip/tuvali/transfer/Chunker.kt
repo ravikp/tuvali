@@ -5,7 +5,7 @@ import io.mosip.tuvali.transfer.Util.Companion.intToTwoBytesBigEndian
 
 class Chunker(private val data: ByteArray, private val mtuSize: Int = DEFAULT_CHUNK_SIZE) :
   ChunkerBase(mtuSize) {
-  private val logTag = "Chunker"
+  private val logTag = javaClass.simpleName
   private var chunksReadCounter: Int = 0
   private val lastChunkByteCount = getLastChunkByteCount(data.size)
   private val totalChunkCount = getTotalChunkCount(data.size).toInt()
@@ -33,7 +33,7 @@ class Chunker(private val data: ByteArray, private val mtuSize: Int = DEFAULT_CH
   private fun chunk(seqNumber: Int): ByteArray {
     val fromIndex = seqNumber * effectivePayloadSize
 
-    return if (seqNumber == (totalChunkCount - 1).toInt() && lastChunkByteCount > 0) {
+    return if (seqNumber == (totalChunkCount - 1) && lastChunkByteCount > 0) {
       Log.d(logTag, "fetching last chunk")
       frameChunk(seqNumber, fromIndex, fromIndex + lastChunkByteCount)
     } else {
@@ -43,13 +43,13 @@ class Chunker(private val data: ByteArray, private val mtuSize: Int = DEFAULT_CH
   }
 
   /*
-  <------------------------------------------------------- MTU ------------------------------------------------------------------->
-  +-----------------------+-----------------------------+-------------------------------------------------------------------------+
-  |                       |                             |                                                                         |
-  |  chunk sequence no    |   checksum value of data    |         chunk payload                                                   |
-  |      (2 bytes)        |         (2 bytes)           |       (upto MTU-4 bytes)                                                |
-  |                       |                             |                                                                         |
-  +-----------------------+-----------------------------+-------------------------------------------------------------------------+
+      <------------------------------- MTU ----------------------------------------------->
+      + --------------------- + --------------------------- + --------------------------- +
+      |                       |                             |                             |
+      |  chunk sequence no    |        chunk payload        |   checksum value of data    |
+      |      (2 bytes)        |      (upto MTU-4 bytes)     |        ( 2 bytes)           |
+      |                       |                             |                             |
+      + --------------------- + --------------------------- + --------------------------- +
    */
   private fun frameChunk(seqNumber: Int, fromIndex: Int, toIndex: Int): ByteArray {
     Log.d(
@@ -59,11 +59,11 @@ class Chunker(private val data: ByteArray, private val mtuSize: Int = DEFAULT_CH
     val dataChunk = data.copyOfRange(fromIndex, toIndex)
     val crc = CheckValue.get(dataChunk)
 
-    return intToTwoBytesBigEndian(seqNumber) + intToTwoBytesBigEndian(crc.toInt()) + dataChunk
+    return intToTwoBytesBigEndian(seqNumber) + dataChunk + intToTwoBytesBigEndian(crc.toInt())
   }
 
   fun isComplete(): Boolean {
-    val isComplete = chunksReadCounter > (totalChunkCount - 1).toInt()
+    val isComplete = chunksReadCounter > (totalChunkCount - 1)
     if (isComplete) {
       Log.d(
         logTag,

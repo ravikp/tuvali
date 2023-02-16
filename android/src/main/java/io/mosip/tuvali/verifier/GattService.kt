@@ -41,7 +41,7 @@ class GattService {
        +---------------------------------- + ----------------------------------- +
        |                                   |                                     |
        |       Transmission Report         |   Checksum value of Response size   |
-       |              Request              |        (2 bytes)                    |
+       |        Request  (1 byte)          |        (2 bytes)                    |
        |                                   |                                     |
        +---------------------------------- + ----------------------------------- +
     */

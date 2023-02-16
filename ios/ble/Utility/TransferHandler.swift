@@ -77,8 +77,10 @@ class TransferHandler {
         sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT, data: nil))
     }
     private func requestTransmissionReport() {
+        let data  = withUnsafeBytes(of: 1.littleEndian) { Data($0) }
+        var crc = CRC.evaluate(d: data)
         var notifyObj: Data
-        Central.shared.writeWithoutResp(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: withUnsafeBytes(of: 1.littleEndian) { Data($0) })
+        Central.shared.writeWithoutResp(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data + Utils.intToBytes(crc))
         print("transmission report requested")
         NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "HANDLE_TRANSMISSION_REPORT"), object: nil, queue: nil) { [unowned self] notification in
             print("Handling notification for \(notification.name.rawValue)")
@@ -124,9 +126,10 @@ class TransferHandler {
     private func sendResponseSize(size: Int) {
         // TODO: Send a stringified number in a byte array
         let decimalString = String(size)
-        let d = decimalString.data(using: .utf8)
-        print(d!)
-        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: d!)
+        let d = decimalString.data(using: .utf8)!
+        var crc = CRC.evaluate(d: d)
+        print(d)
+        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: d + Utils.intToBytes(crc))
         NotificationCenter.default.addObserver(forName: Notification.Name(rawValue: "RESPONSE_SIZE_WRITE_SUCCESS"), object: nil, queue: nil) { [unowned self] notification in
             print("Handling notification for \(notification.name.rawValue)")
             sendMessage(message: imessage(msgType: .RESPONSE_SIZE_WRITE_SUCCESS, data: data))

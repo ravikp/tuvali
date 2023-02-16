@@ -99,7 +99,7 @@ class Chunker {
         if let chunkData = chunkData {
             let payload = chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
             let payloadCRC = CRC.evaluate(d: payload)
-            return Utils.intToBytes(UInt16(seqNumber)) + Utils.intToBytes(payloadCRC) + payload
+            return Utils.intToBytes(UInt16(seqNumber)) + payload + Utils.intToBytes(payloadCRC)
         }
         return Data() //
     }

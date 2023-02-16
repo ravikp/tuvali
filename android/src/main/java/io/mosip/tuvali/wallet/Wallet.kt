@@ -16,11 +16,13 @@ import com.facebook.react.bridge.Callback
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
 import io.mosip.tuvali.retrymechanism.lib.BackOffStrategy
 import io.mosip.tuvali.transfer.CheckValue
-import io.mosip.tuvali.transfer.TransferReport
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.GattService
 import io.mosip.tuvali.verifier.Verifier
 import io.mosip.tuvali.verifier.Verifier.Companion.DISCONNECT_STATUS
+import io.mosip.tuvali.wallet.characteristics.DisconnectCharacteristic
+import io.mosip.tuvali.wallet.characteristics.TransferReportResponseCharacteristic
+import io.mosip.tuvali.wallet.characteristics.VerificationStatusCharacteristic
 import io.mosip.tuvali.wallet.transfer.ITransferListener
 import io.mosip.tuvali.wallet.transfer.TransferHandler
 import io.mosip.tuvali.wallet.transfer.message.*
@@ -87,12 +89,7 @@ class Wallet(
       GattService.IDENTIFY_REQUEST_CHAR_UUID,
       data + Util.intToTwoBytesBigEndian(crcValue.toInt())
     )
-    Log.d(
-      logTag,
-      "Started to write - generated IV ${
-        Hex.toHexString(iv)
-      }, Public Key of wallet: ${Hex.toHexString(publicKey)}"
-    )
+    Log.d(logTag, "Started to write - generated IV ${Hex.toHexString(iv)}, Public Key of wallet: ${Hex.toHexString(publicKey)}")
   }
 
   override fun onScanStartedFailed(errorCode: Int) {
@@ -272,26 +269,39 @@ class Wallet(
     when (charUUID) {
       GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
         value?.let {
-          transferHandler.sendMessage(HandleTransmissionReportMessage(TransferReport(it)))
+          val transferReportResponseCharacteristic = TransferReportResponseCharacteristic(it)
+          transferHandler.sendMessage(HandleTransmissionReportMessage(transferReportResponseCharacteristic.transferReport))
         }
       }
       GattService.VERIFICATION_STATUS_CHAR_UUID -> {
-        val status = value?.get(0)?.toInt()
-        if(status != null && status == TransferHandler.VerificationStates.ACCEPTED.ordinal) {
-          messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.ACCEPTED.value)
-        } else {
-          messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.REJECTED.value)
-        }
+        value?.let {
+          val verificationStatusCharacteristic = VerificationStatusCharacteristic(it)
+          val status = verificationStatusCharacteristic.status
 
-        central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
-        central.disconnectAndClose()
-      }
-      GattService.DISCONNECT_CHAR_UUID -> {
-        val status = value?.get(0)?.toInt()
+          if (status == TransferHandler.VerificationStates.ACCEPTED.ordinal) {
+            messageResponseListener(
+              Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value,
+              Openid4vpBleModule.VCResponseStates.ACCEPTED.value
+            )
+          } else {
+            messageResponseListener(
+              Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value,
+              Openid4vpBleModule.VCResponseStates.REJECTED.value
+            )
+          }
 
-        if(status != null && status == DISCONNECT_STATUS) {
           central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
           central.disconnectAndClose()
+        }
+      }
+      GattService.DISCONNECT_CHAR_UUID -> {
+        value?.let {
+          val disconnectCharacteristic = DisconnectCharacteristic(it)
+          val status = disconnectCharacteristic.status
+          if (status == DISCONNECT_STATUS) {
+            central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
+            central.disconnectAndClose()
+          }
         }
       }
     }
