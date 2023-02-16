@@ -7,6 +7,7 @@ class Wallet: NSObject {
     
     static let shared = Wallet()
     var central: Central?
+    var peripheral: Peripheral?
     var secretTranslator: SecretTranslator?
     var cryptoBox: WalletCryptoBox = WalletCryptoBoxBuilder().build()
     var advIdentifier: String?
@@ -118,7 +119,7 @@ class Wallet: NSObject {
     
     func onDeviceDisconnected(isManualDisconnect: Bool) {
         if(!isManualDisconnect) {
-            central?.connectedPeripheral = nil
+//            central?.connectedPeripheral = nil
             EventEmitter.sharedInstance.emitNearbyEvent(event: "onDisconnected")
         }
     }
