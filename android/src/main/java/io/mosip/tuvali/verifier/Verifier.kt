@@ -12,9 +12,7 @@ import io.mosip.tuvali.cryptography.VerifierCryptoBox
 import io.mosip.tuvali.cryptography.VerifierCryptoBoxBuilder
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
 import io.mosip.tuvali.transfer.TransferReportRequest
-import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
 import io.mosip.tuvali.transfer.DEFAULT_CHUNK_SIZE
-import io.mosip.tuvali.transfer.TransferReportRequest
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.exception.UnsupportedMTUSizeException
 import io.mosip.tuvali.verifier.transfer.ITransferListener
@@ -234,7 +232,7 @@ class Verifier(
     if(mtu < MIN_MTU_REQUIRED){
       throw UnsupportedMTUSizeException("Minimum $MIN_MTU_REQUIRED MTU is required for VC transfer")
     }
-    
+
     negotiatedMTUSize = mtu
   }
 

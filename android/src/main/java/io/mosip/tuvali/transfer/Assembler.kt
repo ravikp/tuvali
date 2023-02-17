@@ -37,9 +37,12 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
     if(crcReceivedIsNotEqualToCrcCalculated(chunkData.copyOfRange(4, chunkData.size), crcReceived)){
       return seqNumberInMeta
     }
+
     lastReadSeqNumber = seqNumberInMeta
+
     System.arraycopy(chunkData, chunkMetaSize, data, seqIndexInMeta * effectivePayloadSize, (chunkData.size-chunkMetaSize))
     chunkReceivedMarker[seqIndexInMeta] = chunkReceivedMarkerByte
+
     Log.d(logTag, "adding chunk complete at index(1-based): $seqNumberInMeta, received chunkSize: ${chunkData.size}")
     return seqNumberInMeta
   }
@@ -64,8 +67,9 @@ class Assembler(private val totalSize: Int, private val mtuSize: Int = DEFAULT_C
     var missedSeqNumbers = intArrayOf()
     chunkReceivedMarker.forEachIndexed() { i, elem ->
       if (elem != chunkReceivedMarkerByte) {
-        Log.d(logTag, "getMissedSequenceNumbers: adding missed sequence number ${i+1}")
-        missedSeqNumbers = missedSeqNumbers + i + 1
+        var currentSeqNumber = i + 1
+        Log.d(logTag, "getMissedSequenceNumbers: adding missed sequence number $currentSeqNumber")
+        missedSeqNumbers = missedSeqNumbers + currentSeqNumber
       }
     }
     return missedSeqNumbers
