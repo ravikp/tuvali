@@ -56,7 +56,10 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
   }
 
   override fun onConnectionStateChange(device: BluetoothDevice?, status: Int, newState: Int) {
-    Log.d(logTag, "onConnectionStateChange: status: $status, newState: $newState, device: $device, deviceHash: ${device.hashCode()}, deviceBondState: ${device?.bondState}")
+    Log.d(logTag, "onConnectionStateChange: deviceAddress: ${device?.address}, status: $status, " +
+      "newState: $newState, device: $device, deviceHash: ${device.hashCode()}, " +
+      "deviceBondState: ${device?.bondState}")
+
     bluetoothDevice = if(newState == BluetoothProfile.STATE_CONNECTED){
       // Required by Android SDK to connect from peripheral side
       val connect = gattServer.connect(device, false)
@@ -142,9 +145,13 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
 
   fun disconnect(): Boolean {
     return if(bluetoothDevice != null) {
+      Log.d(logTag, "Disconnecting from central with device address: ${bluetoothDevice?.address}")
       gattServer.cancelConnection(bluetoothDevice)
       bluetoothDevice = null
       true
-    } else false
+    } else {
+      Log.d(logTag,"No device connected to disconnect !!")
+      false
+    }
   }
 }

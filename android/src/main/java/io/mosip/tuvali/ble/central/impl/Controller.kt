@@ -119,7 +119,10 @@ class Controller(val context: Context) {
   fun disconnect(): Boolean {
     return if(gattClient != null) {
       gattClient!!.disconnect()
-    } else false
+    } else {
+      println("No peripheral connected to disconnect")
+      false
+    }
   }
 
   fun close() {
