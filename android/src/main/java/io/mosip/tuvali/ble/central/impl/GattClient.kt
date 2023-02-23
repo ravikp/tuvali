@@ -130,7 +130,7 @@ class GattClient(var context: Context) {
     @SuppressLint("MissingPermission")
     override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
       if (newState == BluetoothProfile.STATE_CONNECTED) {
-        Log.i(logTag, "Connected to the peripheral")
+        Log.i(logTag, "Connected to the peripheral with address: ${gatt?.device?.address}")
         peripheral?.let { onDeviceConnected(it) }
 
       } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
@@ -148,10 +148,10 @@ class GattClient(var context: Context) {
     onDeviceConnected: (BluetoothDevice) -> Unit,
     onDeviceDisconnected: () -> Unit
   ) {
-    Log.i(logTag, "Initiating connect to ble peripheral")
+    Log.i(logTag, "Initiating connect to ble peripheral with address: ${device.address}")
 
     if(peripheral != null) {
-      Log.i(logTag, "Device is already connected.")
+      Log.i(logTag, "Device is already connected with another peripheral with address: ${peripheral!!.address}.")
       return
     }
 

@@ -35,6 +35,7 @@ class Wallet: NSObject {
     }
 
     func setVerifierPublicKey(publicKeyData: Data) {
+    print("Public Key of verifier received: \(publicKeyData)")
         verifierPublicKey = publicKeyData
     }
 
@@ -107,9 +108,10 @@ class Wallet: NSObject {
     }
 
     func writeToIdentifyRequest() {
-        print("::: write identify called ::: ")
+        //print("::: write identify called ::: ")
         let publicKey = self.cryptoBox.getPublicKey()
-        print("verifier pub key:::", self.verifierPublicKey)
+        print("Public Key of wallet: \(publicKey)")
+        //print("verifier pub key:::", self.verifierPublicKey)
         guard let verifierPublicKey = self.verifierPublicKey else {
             print("Write Identify - Found NO KEY")
             return

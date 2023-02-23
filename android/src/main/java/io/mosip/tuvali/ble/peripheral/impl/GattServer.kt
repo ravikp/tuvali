@@ -60,7 +60,8 @@ class GattServer(private val context: Context) : BluetoothGattServerCallback() {
     bluetoothDevice = if(newState == BluetoothProfile.STATE_CONNECTED){
       // Required by Android SDK to connect from peripheral side
       val connect = gattServer.connect(device, false)
-      Log.d(logTag, "connecting from Peripheral to central: $connect")
+      Log.d(logTag, "Connecting from Peripheral to central: $connect")
+      Log.d(logTag, "Connecting to central with address: ${device?.address}")
 
       onDeviceConnectedCallback(status, newState)
       device?.let { setPhy(it) }

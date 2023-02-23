@@ -86,17 +86,8 @@ class Wallet(
     val publicKey = walletCryptoBox.publicKey()
     secretsTranslator = walletCryptoBox.buildSecretsTranslator(verifierPK)
     val iv = secretsTranslator?.initializationVector()
-    central.write(
-      Verifier.SERVICE_UUID,
-      GattService.IDENTIFY_REQUEST_CHAR_UUID,
-      iv!! + publicKey!!
-    )
-    Log.d(
-      logTag,
-      "Started to write - generated IV ${
-        Hex.toHexString(iv)
-      }, Public Key of wallet: ${Hex.toHexString(publicKey)}"
-    )
+    central.write(Verifier.SERVICE_UUID, GattService.IDENTIFY_REQUEST_CHAR_UUID, iv!! + publicKey!!)
+    Log.d(logTag, "Public Key of wallet: ${Hex.toHexString(publicKey)}")
   }
 
   override fun onScanStartedFailed(errorCode: Int) {
@@ -141,7 +132,7 @@ class Wallet(
     val first5BytesOfPkFromBLE = advertisementPayload.takeLast(5).toByteArray()
     this.verifierPK = first5BytesOfPkFromBLE + scanResponsePayload
 
-    Log.d(logTag, "Public Key of Verifier: ${Hex.toHexString(verifierPK)}")
+    Log.d(logTag, "Public Key of Verifier received: ${Hex.toHexString(verifierPK)}")
   }
 
   private fun isSameAdvIdentifier(advertisementPayload: ByteArray): Boolean {

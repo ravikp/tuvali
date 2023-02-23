@@ -80,7 +80,7 @@ class Verifier(
   fun generateKeyPair() {
     verifierCryptoBox = VerifierCryptoBoxBuilder.build(secureRandom)
     publicKey = verifierCryptoBox.publicKey()
-    Log.i(logTag, "Verifier public key: ${Hex.toHexString(publicKey)}")
+    Log.i(logTag, "Public Key of Verifier: ${Hex.toHexString(publicKey)}")
   }
 
   fun startAdvertisement(advIdentifier: String, successCallback: Callback) {
@@ -136,14 +136,7 @@ class Verifier(
           }
           iv = value.copyOfRange(0, 12)
           walletPubKey = value.copyOfRange(12, 12 + 32)
-          Log.i(
-            logTag,
-            "received wallet iv: ${Hex.toHexString(iv)}, wallet pub key: ${
-              Hex.toHexString(
-                walletPubKey
-              )
-            }"
-          )
+          Log.i(logTag, "Public Key of Wallet received: ${Hex.toHexString(walletPubKey)}")
           secretsTranslator = verifierCryptoBox.buildSecretsTranslator(iv, walletPubKey)
           // TODO: Validate pub key, how to handle if not valid?
           messageResponseListener(Openid4vpBleModule.NearbyEvents.EXCHANGE_SENDER_INFO.value, "{\"deviceName\": \"Wallet\"}")
@@ -232,7 +225,7 @@ class Verifier(
     if(mtu < MIN_MTU_REQUIRED){
       throw UnsupportedMTUSizeException("Minimum $MIN_MTU_REQUIRED MTU is required for VC transfer")
     }
-    
+
     negotiatedMTUSize = mtu
   }
 
