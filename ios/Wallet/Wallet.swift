@@ -5,15 +5,17 @@ import Gzip
 @available(iOS 13.0, *)
 class Wallet: NSObject {
     
-    static let shared = Wallet()
+   // static let shared = Wallet()
     var central: Central?
     var secretTranslator: SecretTranslator?
     var cryptoBox: WalletCryptoBox = WalletCryptoBoxBuilder().build()
     var advIdentifier: String?
     var verifierPublicKey: Data?
+    var createConnection:(()->Void)?
+
     static let EXCHANGE_RECEIVER_INFO_DATA = "{\"deviceName\":\"wallet\"}"
     
-    private override init() {
+     override init() {
         super.init()
     }
     
@@ -30,7 +32,12 @@ class Wallet: NSObject {
         verifierPublicKey = publicKeyData
     }
 
-    
+    func startScanning(){
+        Central.shared.initialize()
+       // Wallet.shared.central = Central.shared
+       
+    }
+
     func destroyConnection(){
         onDeviceDisconnected(isManualDisconnect: false)
     }
@@ -112,6 +119,9 @@ extension Wallet: WalletProtocol {
         print("wallet delegate called")
     }
     
+    func createConnectionHandler() {
+         createConnection?()
+    }
     func disconnectHandler(data: Data?){
         print("Handling notification for disconnect handle")
         if let data {

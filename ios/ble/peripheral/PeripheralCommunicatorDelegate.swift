@@ -10,4 +10,5 @@ protocol PeripheralCommunicatorDelegate: AnyObject {
 protocol WalletProtocol: AnyObject {
     func exchangeReceiverInfoHandler()
     func disconnectHandler(data: Data?)
+    func createConnectionHandler()
 }

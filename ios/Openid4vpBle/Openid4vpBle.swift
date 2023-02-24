@@ -4,6 +4,7 @@ import Foundation
 @objc(Openid4vpBle)
 class Openid4vpBle: RCTEventEmitter {
     
+    var wallet: Wallet?
     override init() {
         super.init()
         EventEmitter.sharedInstance.registerEventEmitter(eventEmitter: self)
@@ -21,9 +22,12 @@ class Openid4vpBle: RCTEventEmitter {
     func setConnectionParameters(params: String) -> Any {
         print("SetConnectionParameters->Params::\(params)")
         var paramsObj = stringToJson(jsonText: params)
-        var firstPartOfPk = paramsObj["pk"]
+        var firstPartOfPk = paramsObj["pk"] as? String
         print("synchronized setConnectionParameters called with", params, "and", firstPartOfPk)
-        Wallet.shared.setAdvIdentifier(identifier: firstPartOfPk as! String)
+        wallet = Wallet()
+        if let firstPartOfPk {
+            wallet?.setAdvIdentifier(identifier: firstPartOfPk)
+        }
         return "data" as Any
     }
     
@@ -46,7 +50,7 @@ class Openid4vpBle: RCTEventEmitter {
 
     @objc(destroyConnection:)
     func destroyConnection(withCallback callback: @escaping RCTResponseSenderBlock) -> Any {
-        Wallet.shared.destroyConnection()
+        wallet?.destroyConnection()
         return "check" as! Any
     }
 
@@ -62,11 +66,11 @@ class Openid4vpBle: RCTEventEmitter {
         case "exchange-sender-info":
             print("EXCHANGE-SENDER-INFO")
             callback([])
-            Wallet.shared.writeToIdentifyRequest()
+            wallet?.writeToIdentifyRequest()
         case "send-vc":
             callback([])
             print(">> raw message size", messageComponents[1].count)
-            Wallet.shared.sendData(data: messageComponents[1])
+            wallet?.sendData(data: messageComponents[1])
         default:
             print("DEFAULT SEND: MESSAGE:: ", message)
         }
@@ -79,11 +83,11 @@ class Openid4vpBle: RCTEventEmitter {
             print("Advertiser")
         case "discoverer":
             print("Discoverer")
-            Central.shared.initialize()
-            Wallet.shared.central = Central.shared
-            Central.shared.createConnection = {
+            wallet?.startScanning(clback: callback)
+            wallet?.createConnection = {
                 callback([])
             }
+
         default:
             print("DEFAULT CASE: MESSAGE:: ", mode)
             break
