@@ -21,10 +21,10 @@ class CRCValidator {
     static func verify(data: Data, characteristic: String) -> Bool {
         let crcValueReceived = Utils.twoBytesToIntBigEndian(num: Data(data.suffix(2)))
         let crcValueCalculated = calculate(d: data.dropLast(2))
-        
+
         if crcValueCalculated != crcValueReceived {
             os_log(.error, "CRC check failed. Received CRC: %{public}d, Calculated CRC: %{public}d", crcValueReceived, crcValueCalculated)
-            ErrorHandler.sharedInstance.handle(error: OpenId4vpError.crcCheckFailedError(characterisitic: characteristic))
+            ErrorHandler.sharedInstance.handle(error: OpenId4vpError.crcCheckFailedError(characteristic: characteristic))
             return false
         }
         return true
