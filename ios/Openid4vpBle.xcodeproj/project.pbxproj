@@ -12,6 +12,9 @@
 		0ACACE8A2966D8C800DABDFE /* Utils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0ACACE892966D8C800DABDFE /* Utils.swift */; };
 		0D36889829A782AA000B12CD /* ErrorHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D36889629A782AA000B12CD /* ErrorHandler.swift */; };
 		0D36889929A782AA000B12CD /* OpenId4vpError.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0D36889729A782AA000B12CD /* OpenId4vpError.swift */; };
+		6B48D6E029BB42DE008CAA2F /* VerificationStatusCharacteristic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B48D6DF29BB42DE008CAA2F /* VerificationStatusCharacteristic.swift */; };
+		6B48D6E229BEEDD8008CAA2F /* TransferReportResponseCharacteristic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B48D6E129BEEDD8008CAA2F /* TransferReportResponseCharacteristic.swift */; };
+		6B48D6E429BEFBE0008CAA2F /* DisconnectCharacteristic.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6B48D6E329BEFBE0008CAA2F /* DisconnectCharacteristic.swift */; };
 		8D069F652964466900AB61A9 /* Central.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D069F642964466900AB61A9 /* Central.swift */; };
 		8D069F672964475A00AB61A9 /* CentralManagerDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D069F662964475A00AB61A9 /* CentralManagerDelegate.swift */; };
 		8D069F69296447D000AB61A9 /* Peripheral.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8D069F68296447D000AB61A9 /* Peripheral.swift */; };
@@ -61,6 +64,9 @@
 		0D36889629A782AA000B12CD /* ErrorHandler.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ErrorHandler.swift; sourceTree = "<group>"; };
 		0D36889729A782AA000B12CD /* OpenId4vpError.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = OpenId4vpError.swift; sourceTree = "<group>"; };
 		134814201AA4EA6300B7C361 /* libOpenid4vpBle.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = libOpenid4vpBle.a; sourceTree = BUILT_PRODUCTS_DIR; };
+		6B48D6DF29BB42DE008CAA2F /* VerificationStatusCharacteristic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerificationStatusCharacteristic.swift; sourceTree = "<group>"; };
+		6B48D6E129BEEDD8008CAA2F /* TransferReportResponseCharacteristic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferReportResponseCharacteristic.swift; sourceTree = "<group>"; };
+		6B48D6E329BEFBE0008CAA2F /* DisconnectCharacteristic.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisconnectCharacteristic.swift; sourceTree = "<group>"; };
 		8D069F642964466900AB61A9 /* Central.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Central.swift; sourceTree = "<group>"; };
 		8D069F662964475A00AB61A9 /* CentralManagerDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CentralManagerDelegate.swift; sourceTree = "<group>"; };
 		8D069F68296447D000AB61A9 /* Peripheral.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Peripheral.swift; sourceTree = "<group>"; };
@@ -139,9 +145,20 @@
 			);
 			sourceTree = "<group>";
 		};
+		6B48D6DE29BB41BB008CAA2F /* characteristics */ = {
+			isa = PBXGroup;
+			children = (
+				6B48D6DF29BB42DE008CAA2F /* VerificationStatusCharacteristic.swift */,
+				6B48D6E129BEEDD8008CAA2F /* TransferReportResponseCharacteristic.swift */,
+				6B48D6E329BEFBE0008CAA2F /* DisconnectCharacteristic.swift */,
+			);
+			path = characteristics;
+			sourceTree = "<group>";
+		};
 		8D069F5E2964369000AB61A9 /* Wallet */ = {
 			isa = PBXGroup;
 			children = (
+				6B48D6DE29BB41BB008CAA2F /* characteristics */,
 				0A62BB702938C1EC0092E47D /* Wallet.swift */,
 			);
 			path = Wallet;
@@ -333,12 +350,14 @@
 			buildActionMask = 2147483647;
 			files = (
 				FD494F4D29ADBE00002612C1 /* BackOffStrategy.swift in Sources */,
+				6B48D6E229BEEDD8008CAA2F /* TransferReportResponseCharacteristic.swift in Sources */,
 				E223F0322977BE090042F919 /* TransferHandler.swift in Sources */,
 				8D069F752968305B00AB61A9 /* EventEmitter.swift in Sources */,
 				8D31C3F82956B0B30073B710 /* SecretTranslator.swift in Sources */,
 				0D36889829A782AA000B12CD /* ErrorHandler.swift in Sources */,
 				8D069F69296447D000AB61A9 /* Peripheral.swift in Sources */,
 				FDA18F3F2977B69A00290433 /* CRC16.swift in Sources */,
+				6B48D6E429BEFBE0008CAA2F /* DisconnectCharacteristic.swift in Sources */,
 				8D069F652964466900AB61A9 /* Central.swift in Sources */,
 				FDD9411E297FAA6B00FBBDD4 /* DataExtension.swift in Sources */,
 				8D31C3F42956AD8B0073B710 /* KeyGenerator.swift in Sources */,
@@ -357,6 +376,7 @@
 				FDD941202980FD2500FBBDD4 /* TransferReport.swift in Sources */,
 				8D31C3FE2956B2650073B710 /* WalletCryptoBoxBuilder.swift in Sources */,
 				8D069F732967BEC200AB61A9 /* PeripheralDelegate.swift in Sources */,
+				6B48D6E029BB42DE008CAA2F /* VerificationStatusCharacteristic.swift in Sources */,
 				8D179C892954871400017EE5 /* CipherBox.swift in Sources */,
 				8D31C3F62956AF460073B710 /* CryptoConstants.swift in Sources */,
 				8D179C9129548B9A00017EE5 /* CipherPackage.swift in Sources */,

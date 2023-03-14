@@ -26,7 +26,6 @@ object CRCValidator {
     val receivedCRC = Util.twoBytesToIntBigEndian(data.takeLast(CRC_VALUE_DATA_SIZE).toByteArray()).toUShort()
     val chunkData = data.dropLast(2).toByteArray()
     val calculatedCRC = calculate(chunkData)
-    Log.i(logTag, "Superclass name: ${javaClass.superclass.simpleName}")
     if(calculatedCRC != receivedCRC) {
       Log.e(logTag, "CRC check failed for $characteristic. Received CRC: $receivedCRC, Calculated CRC: $calculatedCRC")
       return false
