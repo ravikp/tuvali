@@ -5,16 +5,17 @@ import Gzip
 @available(iOS 13.0, *)
 class Wallet: NSObject {
 
-    static let shared = Wallet()
     var central: Central?
     var secretTranslator: SecretTranslator?
     var cryptoBox: WalletCryptoBox = WalletCryptoBoxBuilder().build()
     var advIdentifier: String?
     var verifierPublicKey: Data?
+    var createConnection: (() -> Void)?
     static let EXCHANGE_RECEIVER_INFO_DATA = "{\"deviceName\":\"Verifier\"}"
 
-    private override init() {
+    override init() {
         super.init()
+        central = Central()
     }
 
     @objc(getModuleName:withRejecter:)
@@ -30,8 +31,19 @@ class Wallet: NSObject {
         verifierPublicKey = publicKeyData
     }
 
-    func destroyConnection(isSelfDisconnect: Bool){
-        onDeviceDisconnected(isSelfDisconnect: isSelfDisconnect)
+    func startScanning(){
+        central?.walletDelegate = self
+    }
+
+    func handleDestroyConnection(isSelfDisconnect: Bool) {
+        central?.disconnect()
+        if !isSelfDisconnect {
+            onDeviceDisconnected()
+        }
+    }
+
+    func onDeviceDisconnected(){
+        EventEmitter.sharedInstance.emitNearbyEvent(event: "onDisconnected")
     }
 
     func isSameAdvIdentifier(advertisementPayload: Data) -> Bool {
@@ -67,12 +79,17 @@ class Wallet: NSObject {
         var encryptedData = secretTranslator?.encryptToSend(data: compressedBytes)
 
         if (encryptedData != nil) {
-            //os_log(.info, "Sha256 of Encrypted Data: %{public}@ ", (encryptedData!.sha256()))
             DispatchQueue.main.async {
-                let transferHandler = TransferHandler.shared
+                let transferHandler = TransferHandler()
+                transferHandler.delegate = self
+                transferHandler.destroyConnection = { [weak self] in
+                    self?.handleDestroyConnection(isSelfDisconnect: true)
+                }
+                // DOUBT: why is encrypted data written twice ?
+
                 self.central?.delegate = transferHandler
                 transferHandler.initialize(initdData: encryptedData!)
-                var currentMTUSize =  Central.shared.connectedPeripheral?.maximumWriteValueLength(for: .withoutResponse)
+                var currentMTUSize = self.central?.connectedPeripheral?.maximumWriteValueLength(for: .withoutResponse)
                 if currentMTUSize == nil || currentMTUSize! < 0 {
                    currentMTUSize = BLEConstants.DEFAULT_CHUNK_SIZE
                 }
@@ -92,29 +109,6 @@ class Wallet: NSObject {
         var nonce = (self.secretTranslator?.getNonce())!
         let data = nonce + publicKey
         var crc = CRCValidator.calculate(d: data)
-        central?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: data +  Utils.intToBytes(crc))
-    }
-
-    func onDeviceDisconnected(isSelfDisconnect: Bool) {
-        if let connectedPeripheral = central?.connectedPeripheral {
-            central?.centralManager.cancelPeripheralConnection(connectedPeripheral)
-        }
-        if(!isSelfDisconnect) {
-            EventEmitter.sharedInstance.emitNearbyEvent(event: "onDisconnected")
-        }
-    }
-}
-extension Wallet: WalletProtocol {
-    func onIdentifyWriteSuccess() {
-        EventEmitter.sharedInstance.emitNearbyMessage(event: "exchange-receiver-info", data: Self.EXCHANGE_RECEIVER_INFO_DATA)
-        os_log(.info, "wallet delegate called")
-    }
-
-    func onDisconnectStatusChange(connectionStatusId: Int){
-        if connectionStatusId == 1 {
-            destroyConnection(isSelfDisconnect: false)
-        } else {
-            os_log(.error, "No data received during disconnect")
-        }
+        central?.writeWithResponse(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: data + Utils.intToBytes(crc))
     }
 }

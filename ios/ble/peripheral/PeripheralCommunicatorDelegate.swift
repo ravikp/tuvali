@@ -11,4 +11,7 @@ protocol PeripheralCommunicatorProtocol: AnyObject {
 protocol WalletProtocol: AnyObject {
     func onIdentifyWriteSuccess()
     func onDisconnectStatusChange(connectionStatusId: Int)
+    func createConnectionHandler()
+    func setVeriferKeyOnSameIdentifier(payload: Data, publicData: Data, completion: (() -> Void))
+    func onDisconnect()
 }

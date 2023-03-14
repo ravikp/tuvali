@@ -3,8 +3,6 @@ package io.mosip.tuvali.transfer
 import android.util.Log
 import io.mosip.tuvali.transfer.Util.Companion.intToTwoBytesBigEndian
 import io.mosip.tuvali.transfer.Util.Companion.getLogTag
-import org.bouncycastle.util.encoders.Hex
-import kotlin.math.log
 
 class Chunker(private val data: ByteArray, private val maxDataBytes: Int) :
   ChunkerBase(maxDataBytes) {
@@ -23,24 +21,24 @@ class Chunker(private val data: ByteArray, private val maxDataBytes: Int) :
   }
 
   fun next(): ByteArray {
-    val seqNumber = chunksReadCounter
+    val seqIndex = chunksReadCounter
     chunksReadCounter++
-    return preSlicedChunks[seqNumber]!!
+    return preSlicedChunks[seqIndex]!!
   }
 
   fun chunkBySequenceNumber(num: Int): ByteArray {
     return preSlicedChunks[num]!!
   }
 
-  private fun chunk(seqNumber: Int): ByteArray {
-    val fromIndex = seqNumber * effectivePayloadSize
+  private fun chunk(seqIndex: Int): ByteArray {
+    val fromIndex = seqIndex * effectivePayloadSize
 
-    return if (seqNumber == (totalChunkCount - 1) && lastChunkByteCount > 0) {
+    return if (seqIndex == (totalChunkCount - 1) && lastChunkByteCount > 0) {
       Log.d(logTag, "fetching last chunk")
-      frameChunk(seqNumber, fromIndex, fromIndex + lastChunkByteCount)
+      frameChunk(seqIndex, fromIndex, fromIndex + lastChunkByteCount)
     } else {
-      val toIndex = (seqNumber + 1) * effectivePayloadSize
-      frameChunk(seqNumber, fromIndex, toIndex)
+      val toIndex = (seqIndex + 1) * effectivePayloadSize
+      frameChunk(seqIndex, fromIndex, toIndex)
     }
   }
 
@@ -53,8 +51,9 @@ class Chunker(private val data: ByteArray, private val maxDataBytes: Int) :
       |                       |                             |                             |
       + --------------------- + --------------------------- + --------------------------- +
    */
-  private fun frameChunk(seqNumber: Int, fromIndex: Int, toIndex: Int): ByteArray {
+  private fun frameChunk(seqIndex: Int, fromIndex: Int, toIndex: Int): ByteArray {
     //Log.d(logTag, "fetching chunk size: ${toIndex - fromIndex}, chunkSequenceNumber(0-indexed): $seqNumber")
+    val seqNumber = seqIndex +1
     val dataChunk = intToTwoBytesBigEndian(seqNumber) + data.copyOfRange(fromIndex, toIndex)
     val crc = CRCValidator.calculate(dataChunk)
 

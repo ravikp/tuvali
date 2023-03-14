@@ -3,11 +3,11 @@ import Foundation
 @available(iOS 13.0, *)
 class TransferHandler {
     var data: Data?
+    var delegate: TransferHandlerDelegate?
     private var currentState: States = States.UnInitialised
     private var responseStartTimeInMillis: UInt64 = 0
     private var chunker: Chunker?
-
-    public static var shared = TransferHandler()
+    var destroyConnection: (() -> Void)?
 
     func initialize(initdData: Data) {
         data = initdData
@@ -67,8 +67,10 @@ class TransferHandler {
 
     private func sendRetryRespChunk(missingChunks: [Int]) {
         for chunkIndex in missingChunks {
-            let chunk = chunker?.getChunkWithIndex(index: chunkIndex)
-            Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.SUBMIT_RESPONSE_CHAR_UUID, data: chunk!)
+            if let chunk = chunker?.getChunkWithIndex(index: chunkIndex) {
+                delegate?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.SUBMIT_RESPONSE_CHAR_UUID, data: chunk, withResponse: true)
+            }
+            // checks if no more missing chunks exist on verifier
         }
         sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT, data: nil))
     }
@@ -77,7 +79,7 @@ class TransferHandler {
         var notifyObj: Data
         let data  = withUnsafeBytes(of: 1.littleEndian) { Data($0) }
         var crc = CRCValidator.calculate(d: data)
-        Central.shared.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data + Utils.intToBytes(crc))
+        delegate?.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data + Utils.intToBytes(crc))
         os_log(.info, "transmission report requested")
     }
 
@@ -101,10 +103,10 @@ class TransferHandler {
 
     private func sendResponseSize(size: Int) {
         let decimalString = String(size)
-        let d = decimalString.data(using: .utf8)!
-        var crc = CRCValidator.calculate(d: d)
-        print(d)
-        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: d + Utils.intToBytes(crc))
+        if let data = decimalString.data(using: .utf8) {
+            var crc = CRCValidator.calculate(d: data)
+            delegate?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: data + Utils.intToBytes(crc), withResponse: true)
+        }
     }
 
     private func initResponseChunkSend() {
@@ -115,7 +117,7 @@ class TransferHandler {
         if let chunker = chunker {
             while !chunker.isComplete() {
                 let chunk = chunker.next()
-                Central.shared.writeWithoutResp(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.SUBMIT_RESPONSE_CHAR_UUID, data: chunk)
+                delegate?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.SUBMIT_RESPONSE_CHAR_UUID, data: chunk, withResponse: false)
                 Thread.sleep(forTimeInterval: 0.020)
             }
             sendMessage(message: imessage(msgType: .READ_TRANSMISSION_REPORT))
@@ -185,7 +187,7 @@ extension TransferHandler: PeripheralCommunicatorProtocol {
         } else if status == 1 {
             EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"REJECTED\"")
         }
-        Wallet.shared.destroyConnection(isSelfDisconnect: true)
+        destroyConnection?()
     }
 
     func onFailedToSendTransferReportRequest() {
