@@ -10,21 +10,26 @@ struct Utils {
             return CBMutableCharacteristic(type: keyUUID, properties: chrTuple.properties, value: chrTuple.value, permissions: chrTuple.permissions)
         }
     }
-    
+
     static func currentTimeInMilliSeconds()-> UInt64 {
         let currentDate = Date()
         let since1970 = currentDate.timeIntervalSince1970
         return UInt64(since1970 * 1000)
     }
-    
+
     static func symKeyToString(key: SymmetricKey) -> String {
         let hexKey = key.withUnsafeBytes {
             return Data(Array($0)).toHex()
         }
         return hexKey
     }
-    
+
     static func twoBytesToIntBigEndian(num: Data) -> Int {
-        return (Int(num[0]) * 256 + Int(num[1]) )
+        return (Int(num[num.startIndex]) * 256 + Int(num[num.startIndex+1]) )
+    }
+
+    static func intToBytes(_ value: UInt16) -> Data {
+        var value = value.bigEndian
+        return Data(bytes: &value, count: MemoryLayout<UInt16>.size)
     }
 }

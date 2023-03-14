@@ -90,7 +90,9 @@ class Wallet: NSObject {
         }
         secretTranslator = (cryptoBox.buildSecretsTranslator(verifierPublicKey: verifierPublicKey))
         var nonce = (self.secretTranslator?.getNonce())!
-        central?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: nonce + publicKey)
+        let data = nonce + publicKey
+        var crc = CRCValidator.calculate(d: data)
+        central?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: data +  Utils.intToBytes(crc))
     }
 
     func onDeviceDisconnected(isSelfDisconnect: Bool) {
@@ -108,12 +110,9 @@ extension Wallet: WalletProtocol {
         os_log(.info, "wallet delegate called")
     }
 
-    func onDisconnectStatusChange(data: Data?){
-        if let data {
-            let connStatusID = Int(data[0])
-            if connStatusID == 1 {
-                destroyConnection(isSelfDisconnect: false)
-            }
+    func onDisconnectStatusChange(connectionStatusId: Int){
+        if connectionStatusId == 1 {
+            destroyConnection(isSelfDisconnect: false)
         } else {
             os_log(.error, "No data received during disconnect")
         }

@@ -49,8 +49,8 @@ class TransferHandler {
         }
         else if msg.msgType == .HANDLE_TRANSMISSION_REPORT {
             currentState = States.HandlingTransferReport
-            var handleTransmissionReportMessage = msg.data
-            handleTransmissionReport(report: handleTransmissionReportMessage!)
+            let handleTransmissionReportMessage = msg.data
+            handleTransmissionReport(data: handleTransmissionReportMessage!)
         } else if msg.msgType == .RESPONSE_CHUNK_WRITE_SUCCESS {
             // NoOp: iOS lacks support for writeWithoutResponse callbacks unlike Android
         } else if msg.msgType == .RESPONSE_CHUNK_WRITE_FAILURE {
@@ -75,32 +75,36 @@ class TransferHandler {
 
     private func requestTransmissionReport() {
         var notifyObj: Data
-        Central.shared.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: withUnsafeBytes(of: 1.littleEndian) { Data($0) })
+        let data  = withUnsafeBytes(of: 1.littleEndian) { Data($0) }
+        var crc = CRCValidator.calculate(d: data)
+        Central.shared.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data + Utils.intToBytes(crc))
         os_log(.info, "transmission report requested")
     }
 
-    private func handleTransmissionReport(report: Data) {
-        let r = TransferReport(bytes: report)
-        os_log(.info, "Got the transfer report :  %{public}d", (r.type.rawValue))
-        os_log(.info, "Missing pages: %{public}d ", (r.totalPages))
+    private func handleTransmissionReport(data: Data) {
+        let report = TransferReport(bytes: data)
+        os_log(.info, "Got the transfer report :  %{public}d", (report.type.rawValue))
+        os_log(.info, "Missing pages: %{public}d ", (report.totalPages))
 
-        if (r.type == .SUCCESS) {
+        if (report.type == .SUCCESS) {
             currentState = States.TransferVerified
             EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"RECEIVED\"")
             os_log(.info, "Emitting send-vc:response RECEIVED message")
-        } else if r.type == .MISSING_CHUNKS {
+        } else if report.type == .MISSING_CHUNKS {
             currentState = .PartiallyTransferred
-            sendRetryRespChunk(missingChunks: r.missingSequences!)
+            sendRetryRespChunk(missingChunks: report.missingSequences!)
         } else {
-            os_log(.info, "handle transfer report parsing, report-type= %{public}d", r.type.rawValue)
+            os_log(.info, "handle transfer report parsing, report-type= %{public}d", report.type.rawValue)
             sendMessage(message: imessage(msgType: .RESPONSE_TRANSFER_FAILED, data: nil, dataSize: 0))
         }
     }
 
     private func sendResponseSize(size: Int) {
         let decimalString = String(size)
-        let d = decimalString.data(using: .utf8)
-        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: d!)
+        let d = decimalString.data(using: .utf8)!
+        var crc = CRCValidator.calculate(d: d)
+        print(d)
+        Central.shared.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: d + Utils.intToBytes(crc))
     }
 
     private func initResponseChunkSend() {
@@ -167,27 +171,21 @@ enum SemaphoreMarker: Int {
 }
 
 extension TransferHandler: PeripheralCommunicatorProtocol {
-    func onTransmissionReportRequest(data: Data?) {
-        if let data {
-            sendMessage(message: imessage(msgType: .HANDLE_TRANSMISSION_REPORT, data: data))
-        }
+    func onTransmissionReportRequest(data: Data) {
+        sendMessage(message: imessage(msgType: .HANDLE_TRANSMISSION_REPORT, data: data))
     }
 
     func onResponseSizeWriteSuccess() {
         sendMessage(message: imessage(msgType: .RESPONSE_SIZE_WRITE_SUCCESS, data: data))
     }
 
-    func onVerificationStatusChange(data: Data?) {
-        let value = data
-        if let value =  value {
-            let status = Int(value[0])
-            if status == 0 {
-                EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"ACCEPTED\"")
-            } else if status == 1 {
-                EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"REJECTED\"")
-            }
-            Wallet.shared.destroyConnection(isSelfDisconnect: true)
+    func onVerificationStatusChange(status: Int) {
+        if status == 0 {
+            EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"ACCEPTED\"")
+        } else if status == 1 {
+            EventEmitter.sharedInstance.emitNearbyMessage(event: "send-vc:response", data: "\"REJECTED\"")
         }
+        Wallet.shared.destroyConnection(isSelfDisconnect: true)
     }
 
     func onFailedToSendTransferReportRequest() {

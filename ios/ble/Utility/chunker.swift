@@ -90,11 +90,11 @@ class Chunker {
 
     private func frameChunk(seqNumber: Int, chunkLength: Int, fromIndex: Int, toIndex: Int) -> Data {
         if let chunkData = chunkData {
-            let payload = chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
-            let payloadCRC = CRC.evaluate(d: payload)
-            return intToBytes(UInt16(seqNumber)) + intToBytes(payloadCRC) + payload
+            let payload = Utils.intToBytes(UInt16(seqNumber)) + chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
+            let payloadCRC = CRCValidator.calculate(d: payload)
+            return payload + Utils.intToBytes(payloadCRC)
         }
-        return Data() //
+        return Data()
     }
 
     func isComplete() -> Bool {
@@ -103,10 +103,5 @@ class Chunker {
             os_log(.info, "isComplete: true, totalChunks: %{public}d , chunkReadCounter(1-indexed): %{public}d", totalChunkCount, chunksReadCounter)
         }
        return isComplete
-    }
-
-    func intToBytes(_ value: UInt16) -> Data {
-        var value = value.bigEndian
-        return Data(bytes: &value, count: MemoryLayout<UInt16>.size)
     }
 }

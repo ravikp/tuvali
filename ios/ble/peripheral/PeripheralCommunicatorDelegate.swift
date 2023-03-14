@@ -2,13 +2,13 @@
 import Foundation
 
 protocol PeripheralCommunicatorProtocol: AnyObject {
-    func onTransmissionReportRequest(data: Data?)
+    func onTransmissionReportRequest(data: Data)
     func onResponseSizeWriteSuccess()
-    func onVerificationStatusChange(data: Data?)
+    func onVerificationStatusChange(status: Int)
     func onFailedToSendTransferReportRequest()
 }
 
 protocol WalletProtocol: AnyObject {
     func onIdentifyWriteSuccess()
-    func onDisconnectStatusChange(data: Data?)
+    func onDisconnectStatusChange(connectionStatusId: Int)
 }

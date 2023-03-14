@@ -111,15 +111,24 @@ extension Central: CBPeripheralDelegate {
             return
         }
         if characteristic.uuid == NetworkCharNums.TRANSFER_REPORT_RESPONSE_CHAR_UUID {
-            let report = characteristic.value as Data?
-            delegate?.onTransmissionReportRequest(data: report)
+            let value = characteristic.value
+            if let value = value {
+                let transferReportResponseCharacteristic  = TransferReportResponseCharacteristic(data: value)
+                delegate?.onTransmissionReportRequest(data: value.dropLast(2))
+            }
         } else if characteristic.uuid == NetworkCharNums.VERIFICATION_STATUS_CHAR_UUID {
-            let verificationStatus = characteristic.value as Data?
-            delegate?.onVerificationStatusChange(data: verificationStatus)
+            let value = characteristic.value
+            if let value =  value {
+              let verificationStatusCharacteristic = VerificationStatusCharacteristic(data: value)
+              delegate?.onVerificationStatusChange(status: verificationStatusCharacteristic.status)
+            }
         } else if characteristic.uuid == NetworkCharNums.DISCONNECT_CHAR_UUID {
-            let disconnectStatus = characteristic.value as Data?
-            walletDelegate?.onDisconnectStatusChange(data: disconnectStatus)
-            peripheral.setNotifyValue(false, for: characteristic)
+            let value = characteristic.value
+            if let value =  value {
+              let disconnectCharacteristic = DisconnectCharacteristic(data: value)
+              walletDelegate?.onDisconnectStatusChange(connectionStatusId: disconnectCharacteristic.status)
+              peripheral.setNotifyValue(false, for: characteristic)
+            }
         }
     }
 
