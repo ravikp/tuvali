@@ -18,8 +18,8 @@ object CRCValidator {
     return CRC.calculateCRC(crc16KermitParameters, data).toUShort()
   }
 
-  fun getDataSize(size: Int): Int {
-    return size - CRC_VALUE_DATA_SIZE
+  fun getCrcSizeInBytes(): Int {
+    return CRC_VALUE_DATA_SIZE
   }
 
   private fun verify(data: ByteArray, characteristic: String) : Boolean {
