@@ -15,11 +15,13 @@ import io.mosip.tuvali.cryptography.WalletCryptoBoxBuilder
 import com.facebook.react.bridge.Callback
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
 import io.mosip.tuvali.common.retrymechanism.BackOffStrategy
-import io.mosip.tuvali.transfer.TransferReport
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.verifier.GattService
 import io.mosip.tuvali.verifier.Verifier
 import io.mosip.tuvali.verifier.Verifier.Companion.DISCONNECT_STATUS
+import io.mosip.tuvali.wallet.characteristics.DisconnectCharacteristic
+import io.mosip.tuvali.wallet.characteristics.TransferReportResponseCharacteristic
+import io.mosip.tuvali.wallet.characteristics.VerificationStatusCharacteristic
 import io.mosip.tuvali.wallet.exception.MTUNegotiationFailedException
 import io.mosip.tuvali.wallet.transfer.ITransferListener
 import io.mosip.tuvali.wallet.transfer.TransferHandler
@@ -27,6 +29,7 @@ import io.mosip.tuvali.wallet.transfer.message.*
 import org.bouncycastle.util.encoders.Hex
 import java.security.SecureRandom
 import java.util.*
+import io.mosip.tuvali.transfer.CRCValidator
 import io.mosip.tuvali.transfer.Util.Companion.getLogTag
 
 private const val MTU_REQUEST_RETRY_DELAY_TIME_IN_MILLIS = 500L
@@ -87,17 +90,14 @@ class Wallet(
     val publicKey = walletCryptoBox.publicKey()
     secretsTranslator = walletCryptoBox.buildSecretsTranslator(verifierPK)
     val nonce = secretsTranslator?.nonce
+    val data = nonce!! + publicKey!!
+    val crcValue = CRCValidator.calculate(data)
     central.write(
       Verifier.SERVICE_UUID,
       GattService.IDENTIFY_REQUEST_CHAR_UUID,
-      nonce!! + publicKey!!
+      data + Util.intToTwoBytesBigEndian(crcValue.toInt())
     )
-    Log.d(
-      logTag,
-      "Started to write - generated nonce ${
-        Hex.toHexString(nonce)
-      }, Public Key of wallet: ${Hex.toHexString(publicKey)}"
-    )
+    Log.d(logTag, "Started to write - generated nonce ${Hex.toHexString(nonce)}, Public Key of wallet: ${Hex.toHexString(publicKey)}")
   }
 
   override fun onScanStartedFailed(errorCode: Int) {
@@ -277,26 +277,33 @@ class Wallet(
     when (charUUID) {
       GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID -> {
         value?.let {
-          transferHandler.sendMessage(HandleTransmissionReportMessage(TransferReport(it)))
+          val transferReportResponseCharacteristic = TransferReportResponseCharacteristic(it)
+          transferHandler.sendMessage(HandleTransmissionReportMessage(transferReportResponseCharacteristic.transferReport))
         }
       }
       GattService.VERIFICATION_STATUS_CHAR_UUID -> {
-        val status = value?.get(0)?.toInt()
-        if(status != null && status == TransferHandler.VerificationStates.ACCEPTED.ordinal) {
-          messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.ACCEPTED.value)
-        } else {
-          messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.REJECTED.value)
-        }
+        value?.let {
+          val verificationStatusCharacteristic = VerificationStatusCharacteristic(it)
+          val status = verificationStatusCharacteristic.status
 
-        central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
-        central.disconnectAndClose()
-      }
-      GattService.DISCONNECT_CHAR_UUID -> {
-        val status = value?.get(0)?.toInt()
+          if (status == TransferHandler.VerificationStates.ACCEPTED.ordinal) {
+            messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.ACCEPTED.value)
+          } else {
+            messageResponseListener(Openid4vpBleModule.NearbyEvents.SEND_VC_RESPONSE.value, Openid4vpBleModule.VCResponseStates.REJECTED.value)
+          }
 
-        if(status != null && status == DISCONNECT_STATUS) {
           central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
           central.disconnectAndClose()
+        }
+      }
+      GattService.DISCONNECT_CHAR_UUID -> {
+        value?.let {
+          val disconnectCharacteristic = DisconnectCharacteristic(it)
+          val status = disconnectCharacteristic.status
+          if (status == DISCONNECT_STATUS) {
+            central.unsubscribe(Verifier.SERVICE_UUID, charUUID)
+            central.disconnectAndClose()
+          }
         }
       }
     }
@@ -333,9 +340,7 @@ class Wallet(
         //Log.i(logTag, "Sha256 of Encrypted Data: ${Util.getSha256(encryptedData)}")
         transferHandler.sendMessage(InitResponseTransferMessage(encryptedData, maxDataBytes))
       } else {
-        Log.e(
-          logTag, "encrypted data is null, with size: ${dataInBytes.size} and compressed size: ${compressedBytes?.size}"
-        )
+        Log.e(logTag, "encrypted data is null, with size: ${dataInBytes.size} and compressed size: ${compressedBytes?.size}")
       }
     } catch (e: Exception) {
         Log.e(logTag, "failed to encrypt with size: ${dataInBytes.size} and compressed size ${compressedBytes?.size}, with exception: ${e.message}, stacktrace: ${e.stackTraceToString()}")

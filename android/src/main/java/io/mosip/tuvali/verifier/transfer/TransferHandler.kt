@@ -6,15 +6,12 @@ import android.os.Message
 import android.util.Log
 import io.mosip.tuvali.ble.peripheral.Peripheral
 import io.mosip.tuvali.openid4vpble.exception.exception.TransferHandlerException
-import io.mosip.tuvali.transfer.Assembler
-import io.mosip.tuvali.transfer.TransferReportRequest
-import io.mosip.tuvali.transfer.TransferReport
+import io.mosip.tuvali.transfer.*
 import io.mosip.tuvali.verifier.GattService
 import io.mosip.tuvali.verifier.exception.CorruptedChunkReceivedException
 import io.mosip.tuvali.verifier.exception.TooManyFailureChunksException
 import io.mosip.tuvali.verifier.transfer.message.*
 import java.util.*
-import kotlin.math.ceil
 import io.mosip.tuvali.transfer.Util.Companion.getLogTag
 
 class TransferHandler(looper: Looper, private val peripheral: Peripheral, private val transferListener: ITransferListener, val serviceUUID: UUID) : Handler(looper) {
@@ -35,7 +32,6 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
   private var currentState: States = States.ResponseSizeReadPending
   private var assembler: Assembler? = null
   private var responseStartTimeInMillis: Long = 0
-  private val defaultTransferReportPageSize = 90
 
   override fun handleMessage(msg: Message) {
     when(msg.what) {
@@ -91,10 +87,11 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
   private fun handleTransferReportRequest(maxDataBytes: Int) {
     if (assembler?.isComplete() == true) {
       Log.d(logTag, "success frame: transfer completed")
-      val transferReport = TransferReport(TransferReport.ReportType.SUCCESS, intArrayOf(), maxDataBytes)
+      val transferReport = TransferReport(TransferReport.ReportType.SUCCESS,intArrayOf(), maxDataBytes).toByteArray()
+      val crcValue = CRCValidator.calculate(transferReport)
       transferListener.sendDataOverNotification(
         GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
-        transferReport.toByteArray()
+        transferReport + Util.intToTwoBytesBigEndian(crcValue.toInt())
       )
       this.sendMessage(ResponseTransferCompleteMessage(assembler?.data()!!))
       return
@@ -111,11 +108,13 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
       TransferReport.ReportType.MISSING_CHUNKS,
       missedSequenceNumbers!!,
       maxDataBytes
-    )
+    ).toByteArray()
+    val crcValue = CRCValidator.calculate(transferReport)
+
 
     transferListener.sendDataOverNotification(
       GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
-      transferReport.toByteArray()
+      transferReport + Util.intToTwoBytesBigEndian(crcValue.toInt())
     )
   }
 

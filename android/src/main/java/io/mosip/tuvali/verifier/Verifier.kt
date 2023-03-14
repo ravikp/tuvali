@@ -21,8 +21,14 @@ import io.mosip.tuvali.verifier.transfer.message.InitTransferMessage
 import io.mosip.tuvali.verifier.transfer.message.RemoteRequestedTransferReportMessage
 import io.mosip.tuvali.verifier.transfer.message.ResponseChunkReceivedMessage
 import io.mosip.tuvali.verifier.transfer.message.ResponseSizeReadSuccessMessage
+import io.mosip.tuvali.verifier.characteristics.IdentifyRequestCharacteristic
+import io.mosip.tuvali.verifier.characteristics.ResponseSizeCharacteristic
+import io.mosip.tuvali.verifier.characteristics.SubmitResponseCharacteristic
+import io.mosip.tuvali.verifier.characteristics.TransferReportRequestCharacteristic
+import io.mosip.tuvali.wallet.transfer.TransferHandler.*
 import org.bouncycastle.util.encoders.Hex
 import java.security.SecureRandom
+import io.mosip.tuvali.transfer.CRCValidator
 import java.util.*
 
 private const val MIN_MTU_REQUIRED = 64
@@ -37,8 +43,6 @@ class Verifier(
   private var secretsTranslator: SecretsTranslator? = null;
   private val logTag = getLogTag(javaClass.simpleName)
   private var publicKey: ByteArray = byteArrayOf()
-  private lateinit var walletPubKey: ByteArray
-  private lateinit var nonce: ByteArray
   private var secureRandom: SecureRandom = SecureRandom()
   private var verifierCryptoBox: VerifierCryptoBox = VerifierCryptoBoxBuilder.build(secureRandom)
   private var peripheral: Peripheral
@@ -100,11 +104,17 @@ class Verifier(
 
   fun notifyVerificationStatus(accepted: Boolean) {
     if(accepted) {
+      val data = byteArrayOf(VerificationStates.ACCEPTED.ordinal.toByte())
+      val crcValue = CRCValidator.calculate(data)
       peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
-        byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.ACCEPTED.ordinal.toByte()))
+        data + Util.intToTwoBytesBigEndian(crcValue.toInt())
+      )
     } else {
+      val data = byteArrayOf(VerificationStates.REJECTED.ordinal.toByte())
+      val crcValue = CRCValidator.calculate(data)
       peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
-        byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.REJECTED.ordinal.toByte()))
+        data + Util.intToTwoBytesBigEndian(crcValue.toInt())
+      )
     }
   }
 
@@ -130,21 +140,9 @@ class Verifier(
     when (uuid) {
       GattService.IDENTIFY_REQUEST_CHAR_UUID -> {
         value?.let {
-          // Total size of identity char value will be 12 bytes nonce + 32 bytes pub key
-          if (value.size < 12 + 32) {
-            return
-          }
-          nonce = value.copyOfRange(0, 12)
-          walletPubKey = value.copyOfRange(12, 12 + 32)
-          Log.i(
-            logTag,
-            "received wallet nonce: ${Hex.toHexString(nonce)}, wallet pub key: ${
-              Hex.toHexString(
-                walletPubKey
-              )
-            }"
-          )
-          secretsTranslator = verifierCryptoBox.buildSecretsTranslator(nonce, walletPubKey)
+          val identifyRequestCharacteristic = IdentifyRequestCharacteristic(it)
+          secretsTranslator = verifierCryptoBox.buildSecretsTranslator(identifyRequestCharacteristic.nonce, identifyRequestCharacteristic.publicKey)
+
           // TODO: Validate pub key, how to handle if not valid?
           messageResponseListener(Openid4vpBleModule.NearbyEvents.EXCHANGE_SENDER_INFO.value, "{\"deviceName\": \"Wallet\"}")
           peripheral.enableCommunication()
@@ -153,10 +151,8 @@ class Verifier(
       }
       GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
         value?.let {
-          if (value.isEmpty()) {
-            return
-          }
-          val receivedReportType = value[0].toInt()
+          val transferReportRequestCharacteristic = TransferReportRequestCharacteristic(it)
+          val receivedReportType = transferReportRequestCharacteristic.receivedReportType
           if (receivedReportType == TransferReportRequest.ReportType.RequestReport.ordinal) {
             val remoteRequestedTransferReportMessage =
               RemoteRequestedTransferReportMessage(receivedReportType, maxDataBytes)
@@ -168,17 +164,15 @@ class Verifier(
       }
       GattService.RESPONSE_SIZE_CHAR_UUID -> {
         value?.let {
-          //Log.d(logTag, "received response size on characteristic value: ${String(value)}")
-          val responseSize: Int = String(value).toInt()
-          Log.d(logTag, "received response size on characteristic: $responseSize")
-          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSize, maxDataBytes)
+          val responseSizeCharacteristic =  ResponseSizeCharacteristic(it)
+          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSizeCharacteristic.responseSize, maxDataBytes)
           transferHandler.sendMessage(responseSizeReadSuccessMessage)
         }
       }
       GattService.SUBMIT_RESPONSE_CHAR_UUID -> {
-        if (value != null) {
-          //Log.d(logTag, "received response chunk on characteristic of size: ${value.size}")
-          transferHandler.sendMessage(ResponseChunkReceivedMessage(value))
+        value?.let{
+          val submitResponseCharacteristic = SubmitResponseCharacteristic(it)
+          transferHandler.sendMessage(ResponseChunkReceivedMessage(it))
         }
       }
     }

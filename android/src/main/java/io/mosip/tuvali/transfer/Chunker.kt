@@ -3,6 +3,8 @@ package io.mosip.tuvali.transfer
 import android.util.Log
 import io.mosip.tuvali.transfer.Util.Companion.intToTwoBytesBigEndian
 import io.mosip.tuvali.transfer.Util.Companion.getLogTag
+import org.bouncycastle.util.encoders.Hex
+import kotlin.math.log
 
 class Chunker(private val data: ByteArray, private val maxDataBytes: Int) :
   ChunkerBase(maxDataBytes) {
@@ -14,7 +16,6 @@ class Chunker(private val data: ByteArray, private val maxDataBytes: Int) :
 
   init {
     Log.i(logTag, "Total number of chunks calculated: $totalChunkCount")
-    val startTime = System.currentTimeMillis()
     for (idx in 0 until totalChunkCount) {
       preSlicedChunks[idx] = chunk(idx)
     }
@@ -34,7 +35,7 @@ class Chunker(private val data: ByteArray, private val maxDataBytes: Int) :
   private fun chunk(seqNumber: Int): ByteArray {
     val fromIndex = seqNumber * effectivePayloadSize
 
-    return if (seqNumber == (totalChunkCount - 1).toInt() && lastChunkByteCount > 0) {
+    return if (seqNumber == (totalChunkCount - 1) && lastChunkByteCount > 0) {
       Log.d(logTag, "fetching last chunk")
       frameChunk(seqNumber, fromIndex, fromIndex + lastChunkByteCount)
     } else {
@@ -44,24 +45,24 @@ class Chunker(private val data: ByteArray, private val maxDataBytes: Int) :
   }
 
   /*
-  <--------------------------------------------------Max Data Bytes -------------------------------------------------------------->
-  +-----------------------+-----------------------------+-------------------------------------------------------------------------+
-  |                       |                             |                                                                         |
-  |  chunk sequence no    |   checksum value of data    |         chunk payload                                                   |
-  |      (2 bytes)        |         (2 bytes)           |       (upto MaxDataBytes -4 bytes)                                      |
-  |                       |                             |                                                                         |
-  +-----------------------+-----------------------------+-------------------------------------------------------------------------+
+      <------------------------------- MTU ----------------------------------------------->
+      + --------------------- + --------------------------- + --------------------------- +
+      |                       |                             |                             |
+      |  chunk sequence no    |        chunk payload        |   checksum value of data    |
+      |      (2 bytes)        |      (upto MTU-4 bytes)     |        ( 2 bytes)           |
+      |                       |                             |                             |
+      + --------------------- + --------------------------- + --------------------------- +
    */
   private fun frameChunk(seqNumber: Int, fromIndex: Int, toIndex: Int): ByteArray {
     //Log.d(logTag, "fetching chunk size: ${toIndex - fromIndex}, chunkSequenceNumber(0-indexed): $seqNumber")
-    val dataChunk = data.copyOfRange(fromIndex, toIndex)
-    val crc = CheckValue.get(dataChunk)
+    val dataChunk = intToTwoBytesBigEndian(seqNumber) + data.copyOfRange(fromIndex, toIndex)
+    val crc = CRCValidator.calculate(dataChunk)
 
-    return intToTwoBytesBigEndian(seqNumber) + intToTwoBytesBigEndian(crc.toInt()) + dataChunk
+    return dataChunk + intToTwoBytesBigEndian(crc.toInt())
   }
 
   fun isComplete(): Boolean {
-    val isComplete = chunksReadCounter > (totalChunkCount - 1).toInt()
+    val isComplete = chunksReadCounter > (totalChunkCount - 1)
     if (isComplete) {
       Log.d(
         logTag,

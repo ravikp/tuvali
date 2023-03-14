@@ -133,7 +133,14 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   }
 
   private fun requestTransmissionReport() {
-    central.write(serviceUUID, GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID, byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte()))
+
+    val data = byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte())
+    val crcValue = CRCValidator.calculate(data)
+    central.write(
+      serviceUUID,
+      GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID,
+      data + Util.intToTwoBytesBigEndian(crcValue.toInt())
+    )
   }
 
   private fun sendResponseChunk() {
@@ -181,10 +188,12 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
 
 
   private fun sendResponseSize(size: Int) {
+    val data  = "$size".toByteArray()
+    val crcValue = CRCValidator.calculate(data)
     central.write(
       serviceUUID,
       GattService.RESPONSE_SIZE_CHAR_UUID,
-      "$size".toByteArray()
+      data + Util.intToTwoBytesBigEndian(crcValue.toInt())
     )
   }
 

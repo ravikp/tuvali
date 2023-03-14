@@ -9,6 +9,7 @@ import java.security.MessageDigest
 import java.util.zip.GZIPInputStream
 import java.util.zip.GZIPOutputStream
 import io.mosip.tuvali.openid4vpble.Openid4vpBleModule
+import java.nio.ByteBuffer
 
 
 class Util {
