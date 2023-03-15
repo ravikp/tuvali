@@ -28,18 +28,18 @@ class GattService {
    */
     val RESPONSE_SIZE_CHAR_UUID: UUID = UUID.fromString("00002033-0000-1000-8000-00805f9b34fb")
     /*
-      + --------------------- + --------------------------- + --------------------------- +
-      |                       |                             |                             |
-      |  chunk sequence no    |        chunk payload        |   checksum value of data    |
-      |      (2 bytes)        |      (upto MTU-4 bytes)     |        ( 2 bytes)           |
-      |                       |                             |                             |
-      + --------------------- + --------------------------- + --------------------------- +
+       + --------------------- + ----------------------------------- + --------------------------- +
+      |                       |                                     |                             |
+      |  chunk sequence no    |        chunk payload                |   checksum value of data    |
+      |      (2 bytes)        |   (upto MaxChunkDataBytes-4 bytes)  |        ( 2 bytes)           |
+      |                       |                                     |                             |
+      + --------------------- + ----------------------------------- + --------------------------- +
    */
     val SUBMIT_RESPONSE_CHAR_UUID: UUID = UUID.fromString("00002034-0000-1000-8000-00805f9b34fb")
     /*
        +---------------------------------- + ----------------------------------- +
        |                                   |                                     |
-       |       Transmission Report         |   Checksum value of Response size   |
+       |       Transfer Report             |   Checksum value of Response size   |
        |        Request                    |        (2 bytes)                    |
        |                                   |                                     |
        +---------------------------------- + ----------------------------------- +
@@ -48,7 +48,7 @@ class GattService {
     /*
        +---------------------------------- + ----------------------------------- +
        |                                   |                                     |
-       |       Transmission Report         |   Checksum value of Response size   |
+       |       Transfer Report             |   Checksum value of Response size   |
        |        Response                   |        (2 bytes)                    |
        |                                   |                                     |
        +---------------------------------- + ----------------------------------- +
@@ -63,6 +63,14 @@ class GattService {
        +---------------------------------- + ----------------------------------- +
     */
     val VERIFICATION_STATUS_CHAR_UUID: UUID = UUID.fromString("00002037-0000-1000-8000-00805f9b34fb")
+    /*
+       +---------------------------------- + ----------------------------------- +
+       |                                   |                                     |
+       |       Disconnect                  |   Checksum value of Response size   |
+       |                                   |        (2 bytes)                    |
+       |                                   |                                     |
+       +---------------------------------- + ----------------------------------- +
+    */
     val DISCONNECT_CHAR_UUID: UUID = UUID.fromString("00002038-0000-1000-8000-00805f9b34fb")
   }
 

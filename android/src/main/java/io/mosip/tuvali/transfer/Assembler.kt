@@ -5,7 +5,7 @@ import io.mosip.tuvali.transfer.Util.Companion.twoBytesToIntBigEndian
 import io.mosip.tuvali.verifier.exception.CorruptedChunkReceivedException
 import io.mosip.tuvali.transfer.Util.Companion.getLogTag
 
-class Assembler(private val totalSize: Int, private val maxDataBytes: Int ): ChunkerBase(maxDataBytes) {
+class Assembler(private val totalSize: Int, private val maxChunkDataBytes: Int ): ChunkerBase(maxChunkDataBytes) {
   private val logTag = getLogTag(javaClass.simpleName)
   private var data: ByteArray = ByteArray(totalSize)
   private var lastReadSeqNumber: Int? = null
@@ -41,7 +41,7 @@ class Assembler(private val totalSize: Int, private val maxDataBytes: Int ): Chu
 
 
 
-  private fun chunkSizeGreaterThanMaxDataBytes(chunkData: ByteArray) = chunkData.size > maxDataBytes
+  private fun chunkSizeGreaterThanMaxDataBytes(chunkData: ByteArray) = chunkData.size > maxChunkDataBytes
 
   fun isComplete(): Boolean {
     if(chunkReceivedMarker.none { it != chunkReceivedMarkerByte }) {
@@ -56,7 +56,7 @@ class Assembler(private val totalSize: Int, private val maxDataBytes: Int ): Chu
       if (elem != chunkReceivedMarkerByte) {
         // Transfer Report requires sequence numbers in 1-based index
         val currentSeqNumber = i + 1
-        missedSeqNumbers = missedSeqNumbers + currentSeqNumber
+        missedSeqNumbers += currentSeqNumber
       }
     }
     return missedSeqNumbers
