@@ -6,7 +6,11 @@ protocol TransferHandlerDelegate: AnyObject {
 }
 
 extension Wallet: WalletProtocol {
-    
+    func onDisconnectStatusChange(connectionStatusId: Int){
+        if connectionStatusId == 1 {
+            handleDestroyConnection(isSelfDisconnect: false)
+        }
+    }
     func onDisconnect() {
         self.onDeviceDisconnected()
     }
@@ -14,18 +18,7 @@ extension Wallet: WalletProtocol {
     func onIdentifyWriteSuccess() {
         EventEmitter.sharedInstance.emitNearbyMessage(event: "exchange-receiver-info", data: Self.EXCHANGE_RECEIVER_INFO_DATA)
     }
-    
-    func onDisconnectStatusChange(data: Data?) {
-        print("Handling notification for disconnect handle")
-        if let data {
-            let connStatusID = Int(data[0])
-            if connStatusID == 1 {
-                print("con statusid:", connStatusID)
-                handleDestroyConnection(isSelfDisconnect: false)
-            }
-        } 
-    }
-    
+        
     func setVeriferKeyOnSameIdentifier(payload: Data, publicData: Data, completion: (() -> Void)) {
         if isSameAdvIdentifier(advertisementPayload: payload) {
             setVerifierPublicKey(publicKeyData: publicData)

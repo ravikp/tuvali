@@ -79,7 +79,7 @@ class TransferHandler {
         var notifyObj: Data
         let data  = withUnsafeBytes(of: 1.littleEndian) { Data($0) }
         var crc = CRCValidator.calculate(d: data)
-        delegate?.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data + Utils.intToBytes(crc))
+        delegate?.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data + Utils.intToBytes(crc), withResponse: true)
         os_log(.info, "transmission report requested")
     }
 
