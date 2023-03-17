@@ -11,6 +11,6 @@ class VerificationStatusCharacteristic {
   init(data: Data){
       self.data =  data
       status = Int(data[0])
-      CRCValidator.verify(data: data, characteristic: "VerificationStatusCharacteristic")
+       CRCValidator.verify(data: data, characteristic: VerificationStatusCharacteristic.uuid.rawValue)
   }
 }

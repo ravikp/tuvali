@@ -12,7 +12,7 @@ class DisconnectCharacteristic(val data: ByteArray) {
   }
 
   init{
-    CRCValidator.validateCrcSentByVerifier(data, javaClass.simpleName)
+    CRCValidator.validateDataFromVerifier(data, uuid.toString())
   }
 }
 

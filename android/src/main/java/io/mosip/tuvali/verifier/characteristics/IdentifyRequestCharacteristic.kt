@@ -19,9 +19,9 @@ class IdentifyRequestCharacteristic(val data: ByteArray) {
 
   init {
     if (data.size < NONCE_DATA_SIZE + PUBLIC_KEY_DATA_SIZE + crcValueInBytes) {
-      throw DataCorruptionException("Received data is less than the expected size on ${javaClass.simpleName}")
+      throw DataCorruptionException("Received data is less than the expected size on ${javaClass.simpleName}. Data size: ${data.size}")
     }
-    CRCValidator.validateCrcSentByWallet(data, javaClass.simpleName)
+    CRCValidator.validateDataFromWallet(data, uuid.toString())
   }
 
 

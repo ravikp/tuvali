@@ -11,6 +11,6 @@ class TransferReportResponseCharacteristic {
   init(data: Data){
       self.data =  data
       status = Int(data[0])
-      CRCValidator.verify(data: data, characteristic: "TransferReportResponseCharacteristic")
+       CRCValidator.verify(data: data, characteristic: TransferReportResponseCharacteristic.uuid.rawValue)
   }
 }

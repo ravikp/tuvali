@@ -12,6 +12,6 @@ class TransferReportRequestCharacteristic(val data: ByteArray) {
   }
 
   init{
-    CRCValidator.validateCrcSentByWallet(data, javaClass.simpleName)
+    CRCValidator.validateDataFromWallet(data, uuid.toString())
   }
 }

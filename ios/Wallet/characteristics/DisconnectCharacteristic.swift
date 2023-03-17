@@ -11,6 +11,6 @@ class DisconnectCharacteristic {
     init(data: Data){
         self.data =  data
         status = Int(data[0])
-        CRCValidator.verify(data: data, characteristic: "DisconnectCharacteristic")
+         CRCValidator.verify(data: data, characteristic: DisconnectCharacteristic.uuid.rawValue)
     }
 }
