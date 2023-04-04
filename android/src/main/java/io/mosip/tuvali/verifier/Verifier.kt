@@ -29,6 +29,7 @@ import io.mosip.tuvali.wallet.transfer.TransferHandler.*
 import org.bouncycastle.util.encoders.Hex
 import java.security.SecureRandom
 import io.mosip.tuvali.transfer.CRCValidator
+import io.mosip.tuvali.verifier.exception.WalletDataReceivedCrcFailedException
 import java.util.*
 
 private const val MIN_MTU_REQUIRED = 64
@@ -172,8 +173,15 @@ class Verifier(
       }
       GattService.SUBMIT_RESPONSE_CHAR_UUID -> {
         value?.let{
-          val submitResponseCharacteristic = SubmitResponseCharacteristic(it)
-          transferHandler.sendMessage(ResponseChunkReceivedMessage(it))
+          try{
+            val submitResponseCharacteristic = SubmitResponseCharacteristic(it)
+            transferHandler.sendMessage(ResponseChunkReceivedMessage(it))
+          }catch(exception: WalletDataReceivedCrcFailedException ){
+            Log.e(logTag,
+              "CRC check failed for chunk with sequence number: ${Util.twoBytesToIntBigEndian(it.copyOfRange(0,2))}",
+              exception)
+
+          }
         }
       }
     }

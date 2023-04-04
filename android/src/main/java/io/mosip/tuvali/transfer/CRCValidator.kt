@@ -23,14 +23,13 @@ object CRCValidator {
   private fun verify(
     data: ByteArray,
     exceptionFn: (UShort, UShort) -> Nothing,
-  ): Boolean {
+  ){
     val receivedCRC = Util.twoBytesToIntBigEndian(data.takeLast(CRC_VALUE_DATA_SIZE).toByteArray()).toUShort()
     val chunkData = data.dropLast(CRC_VALUE_DATA_SIZE).toByteArray()
     val calculatedCRC = calculate(chunkData)
     if (calculatedCRC != receivedCRC) {
       exceptionFn(receivedCRC, calculatedCRC)
     }
-    return true
   }
 
   fun validateDataFromWallet(data: ByteArray, charUUID: String) {
