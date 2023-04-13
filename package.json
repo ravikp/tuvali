@@ -31,7 +31,7 @@
     "typescript": "tsc --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "release": "release-it",
-    "clean": "del-cli android/build example/android/build example/android/app/build example/ios/build",
+    "clean": "del-cli android/build",
     "bootstrap": "yarn install"
   },
   "keywords": [
