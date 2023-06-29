@@ -9,12 +9,13 @@ import kotlin.math.min
 private const val PAGE_NUMBER_SIZE_IN_BYTES = 2
 private const val CHUNK_SEQUENCE_NUMBER_IN_BYTES = 2
 private const val TYPE_SIZE_IN_BYTES = 1
+private  val CRC_VALUE_IN_BYTES = CRCValidator.getCrcSizeInBytes()
+
 class TransferReport  {
   val type: ReportType
   private val totalPages: Int
   val missingSequences: IntArray?
   private val logTag = Util.getLogTag(javaClass.simpleName)
-  private val crcValueInBytes = CRCValidator.getCrcSizeInBytes()
 
   //TODO: give static number to respective types below
   enum class ReportType {
