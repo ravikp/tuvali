@@ -5,8 +5,8 @@ import CrcSwift
 //width=16 poly=0x1021 init=0x0000 refin=true refout=true xorout=0x0000 check=0x2189 residue=0x0000 name="CRC-16/KERMIT"
 //TODO: Need to identify what is check, and residue in the Kermit algorithm
 
-class CRC {
-    static func evaluate(d: Data) -> UInt16 {
+class CRCValidator {
+    static func calculate(d: Data) -> UInt16 {
         let crc = CrcSwift.computeCrc16(
             d,
             initialCrc: 0x0000,
@@ -18,12 +18,15 @@ class CRC {
         return crc
     }
 
-    static func verify(d: Data, expected: UInt16) -> Bool {
-        let got = evaluate(d: d)
-        if got == expected {
-            return true
+    static func verify(data: Data, characteristic: String) -> Bool {
+        let crcValueReceived = Util.networkOrderedByteArrayToInt(num: Data(data.suffix(2)))
+        let crcValueCalculated = calculate(d: data.dropLast(2))
+
+        if crcValueCalculated != crcValueReceived {
+            os_log(.error, "CRC check failed. Received CRC: %{public}d, Calculated CRC: %{public}d", crcValueReceived, crcValueCalculated)
+            ErrorHandler.sharedInstance.handleException(type: .walletException, error: .crcCheckFailedError(characteristic: characteristic))
+            return false
         }
-        os_log(.error, "non-equal CRC; evaluated= %{public}@, expect= %{public}@", got, expected)
-        return false
+        return true
     }
 }

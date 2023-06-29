@@ -88,22 +88,22 @@ class Chunker {
     }
 
     /*
-     <------------------------------------------------------- MTU ------------------------------------------------------------------->
-     +-----------------------+-----------------------------+-------------------------------------------------------------------------+
-     |                       |                             |                                                                         |
-     |  chunk sequence no    |     total chunk length      |         chunk payload                                                   |
-     |      (2 bytes)        |         (2 bytes)           |       (upto MTU-4 bytes)                                                |
-     |                       |                             |                                                                         |
-     +-----------------------+-----------------------------+-------------------------------------------------------------------------+
-     */
+          <----------------------------------- MaxChunkDataBytes ------------------------------------->
+          + --------------------- + ----------------------------------- + --------------------------- +
+          |                       |                                     |                             |
+          |  chunk sequence no    |        chunk payload                |   checksum value of data    |
+          |      (2 bytes)        |   (upto MaxChunkDataBytes-4 bytes)  |        ( 2 bytes)           |
+          |                       |                                     |                             |
+          + --------------------- + ----------------------------------- + --------------------------- +
+    */
 
     private func frameChunk(seqNumber: ChunkSeqNumber, chunkLength: Int, fromIndex: Int, toIndex: Int) -> Data {
-        if let chunkData = chunkData {
-            let payload = chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
-            let payloadCRC = CRC.evaluate(d: payload)
-            return Util.intToNetworkOrderedByteArray(num: seqNumber, byteCount: Util.ByteCount.TwoBytes) + Util.intToNetworkOrderedByteArray(num: Int(payloadCRC), byteCount: Util.ByteCount.TwoBytes) + payload
+         if let chunkData = chunkData {
+            let payload = Util.intToNetworkOrderedByteArray(num: seqNumber, byteCount: Util.ByteCount.TwoBytes) + chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
+            let payloadCRC = CRCValidator.calculate(d: payload)
+            return payload + Util.intToNetworkOrderedByteArray(num: Int(payloadCRC), byteCount: Util.ByteCount.TwoBytes)
         }
-        return Data() //
+        return Data()
     }
 
     func isComplete() -> Bool {
