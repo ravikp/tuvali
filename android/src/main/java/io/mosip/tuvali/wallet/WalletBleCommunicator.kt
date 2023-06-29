@@ -61,6 +61,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
   //default mtu is 23 bytes and the allowed data bytes is 20 bytes
   private var maxDataBytes = 20
   private val mtuValues = arrayOf(512, 185, 100)
+  private val serviceUUID = VerifierBleCommunicator.SERVICE_UUID
 
   private val retryDiscoverServices = BackOffStrategy(maxRetryLimit = 5)
 
@@ -81,7 +82,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
   init {
     central = Central(context, this@WalletBleCommunicator)
     handlerThread.start()
-    transferHandler = TransferHandler(handlerThread.looper, central, VerifierBleCommunicator.SERVICE_UUID, this@WalletBleCommunicator)
+    transferHandler = TransferHandler(handlerThread.looper, central, serviceUUID, this@WalletBleCommunicator)
   }
 
   fun stop(onDestroy: () -> Unit) {
@@ -91,7 +92,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
   }
 
   fun startScanning() {
-    central.scan(VerifierBleCommunicator.SERVICE_UUID)
+    central.scan(serviceUUID)
   }
 
   private fun writeToIdentifyRequest() {
@@ -99,14 +100,9 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
     secretsTranslator = walletCryptoBox.buildSecretsTranslator(verifierPK)
     val nonce = secretsTranslator?.nonce
 
-    val data = nonce!! + publicKey!!
-    val crcValue = CRCValidator.calculate(data)
+    val data = Util.addCrcToData(nonce!! + publicKey!!)
 
-    central.write(
-      VerifierBleCommunicator.SERVICE_UUID,
-      GattService.IDENTIFY_REQUEST_CHAR_UUID,
-      data + Util.intToNetworkOrderedByteArray(crcValue.toInt(), ByteCount.TwoBytes)
-    )
+    central.write(serviceUUID, GattService.IDENTIFY_REQUEST_CHAR_UUID, data)
     Log.d(
       logTag, "Started to write - generated nonce ${
         Hex.toHexString(nonce)
@@ -126,7 +122,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
         return
       }
       val scanResponsePayload = scanRecord?.getServiceData(ParcelUuid(VerifierBleCommunicator.SCAN_RESPONSE_SERVICE_UUID))
-      val advertisementPayload = scanRecord?.getServiceData(ParcelUuid(VerifierBleCommunicator.SERVICE_UUID))
+      val advertisementPayload = scanRecord?.getServiceData(ParcelUuid(serviceUUID))
 
       if (advertisementPayload != null && isSameAdvPayload(advertisementPayload) && scanResponsePayload != null) {
         setVerifierPK(advertisementPayload, scanResponsePayload)
@@ -167,7 +163,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
 
   override fun onServicesDiscovered(serviceUuids: List<UUID>) {
 
-    if (serviceUuids.contains(VerifierBleCommunicator.SERVICE_UUID)) {
+    if (serviceUuids.contains(serviceUUID)) {
       retryDiscoverServices.reset()
       Log.d(logTag, "onServicesDiscovered with services - $serviceUuids")
       central.requestMTU(mtuValues, MTU_REQUEST_RETRY_DELAY_TIME_IN_MILLIS)
@@ -194,7 +190,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
   override fun onRequestMTUSuccess(mtu: Int) {
     Log.d(logTag, "onRequestMTUSuccess")
     maxDataBytes = mtu
-    central.subscribe(VerifierBleCommunicator.SERVICE_UUID, GattService.DISCONNECT_CHAR_UUID)
+    central.subscribe(serviceUUID, GattService.DISCONNECT_CHAR_UUID)
     eventEmitter.emitEvent(ConnectedEvent())
     writeToIdentifyRequest()
   }
@@ -256,8 +252,8 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
         transferHandler.sendMessage(ResponseChunkWriteSuccessMessage())
       }
       GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
-        central.subscribe(VerifierBleCommunicator.SERVICE_UUID, GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID)
-        central.subscribe(VerifierBleCommunicator.SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID)
+        central.subscribe(serviceUUID, GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID)
+        central.subscribe(serviceUUID, GattService.VERIFICATION_STATUS_CHAR_UUID)
       }
     }
   }
@@ -288,7 +284,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
           } else {
             eventEmitter.emitEvent(VerificationStatusEvent(VerificationStatusEvent.VerificationStatus.REJECTED))
           }
-          central.unsubscribe(VerifierBleCommunicator.SERVICE_UUID, charUUID)
+          central.unsubscribe(serviceUUID, charUUID)
           central.disconnectAndClose()
         }
       }
@@ -297,7 +293,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
           val disconnectCharacteristic = DisconnectCharacteristic(it)
           val status = disconnectCharacteristic.status
           if (status == DISCONNECT_STATUS) {
-            central.unsubscribe(VerifierBleCommunicator.SERVICE_UUID, charUUID)
+            central.unsubscribe(serviceUUID, charUUID)
             central.disconnectAndClose()
           }
         }

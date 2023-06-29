@@ -41,13 +41,9 @@ class Peripheral(context: Context, peripheralListener: IPeripheralListener) {
   }
 
   private fun notifyDisconnect(serviceUUID: UUID) {
-    val data = byteArrayOf(VerifierBleCommunicator.DISCONNECT_STATUS.toByte())
-    val crcValue = CRCValidator.calculate(data)
-    sendData(
-      serviceUUID,
-      GattService.DISCONNECT_CHAR_UUID,
-      data + Util.intToNetworkOrderedByteArray(crcValue.toInt(), TwoBytes)
-    )
+    val value = byteArrayOf(VerifierBleCommunicator.DISCONNECT_STATUS.toByte())
+    val data = Util.addCrcToData(value)
+    sendData(serviceUUID, GattService.DISCONNECT_CHAR_UUID, data)
   }
 
   fun setupService(service: BluetoothGattService) {

@@ -88,12 +88,9 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
       Log.d(logTag, "success frame: transfer completed")
 
       val transferReport = TransferReport(TransferReport.ReportType.SUCCESS,intArrayOf(), maxDataBytes).toByteArray()
-      val crcValue = CRCValidator.calculate(transferReport)
+      val data = Util.addCrcToData(transferReport)
 
-      transferListener.sendDataOverNotification(
-        GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
-        transferReport + Util.intToNetworkOrderedByteArray(crcValue.toInt(), ByteCount.TwoBytes)
-      )
+      transferListener.sendDataOverNotification(GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID, data)
       this.sendMessage(ResponseTransferCompleteMessage(assembler?.data()!!))
       return
     }
@@ -110,12 +107,8 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
       missedSequenceNumbers!!,
       maxDataBytes
     ).toByteArray()
-    val crcValue = CRCValidator.calculate(transferReport)
-
-    transferListener.sendDataOverNotification(
-      GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
-      transferReport + Util.intToNetworkOrderedByteArray(crcValue.toInt(),ByteCount.TwoBytes)
-    )
+    val data = Util.addCrcToData(transferReport)
+    transferListener.sendDataOverNotification(GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,data)
   }
 
   private fun assembleChunk(chunkData: ByteArray) {

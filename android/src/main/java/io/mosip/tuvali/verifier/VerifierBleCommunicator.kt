@@ -101,17 +101,13 @@ class VerifierBleCommunicator(
 
   fun notifyVerificationStatus(accepted: Boolean) {
     if(accepted) {
-      val data = byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.ACCEPTED.ordinal.toByte())
-      val crcValue = CRCValidator.calculate(data)
-      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
-        data + Util.intToNetworkOrderedByteArray(crcValue.toInt(),TwoBytes)
-      )
+      val value = byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.ACCEPTED.ordinal.toByte())
+      val data = Util.addCrcToData(value)
+      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID, data)
     } else {
-      val data = byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.REJECTED.ordinal.toByte())
-      val crcValue = CRCValidator.calculate(data)
-      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
-        data + Util.intToNetworkOrderedByteArray(crcValue.toInt(), TwoBytes)
-      )
+      val value = byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.REJECTED.ordinal.toByte())
+      val data = Util.addCrcToData(value)
+      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID, data)
     }
   }
 

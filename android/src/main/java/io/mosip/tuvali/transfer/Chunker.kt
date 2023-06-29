@@ -54,9 +54,7 @@ class Chunker(private val data: ByteArray, private val maxChunkDataBytes: Int) :
   */
   private fun frameChunk(seqNumber: Int, fromIndex: Int, toIndex: Int): ByteArray {
     val dataChunk = intToNetworkOrderedByteArray(seqNumber, TwoBytes) + data.copyOfRange(fromIndex, toIndex)
-    val crc = CRCValidator.calculate(dataChunk)
-
-    return dataChunk + intToNetworkOrderedByteArray(crc.toInt(), TwoBytes)
+    return Util.addCrcToData(dataChunk)
 
   }
 

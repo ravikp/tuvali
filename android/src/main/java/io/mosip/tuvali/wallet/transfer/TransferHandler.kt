@@ -143,14 +143,9 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   }
 
   private fun requestTransmissionReport() {
-    val data = byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte())
-    val crcValue = CRCValidator.calculate(data)
-    central.write(
-      serviceUUID,
-      GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID,
-      data + Util.intToNetworkOrderedByteArray(crcValue.toInt(), TwoBytes)
-    )
-
+    val value = byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte())
+    val data = Util.addCrcToData(value)
+    central.write(serviceUUID, GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID, data)
   }
 
   private fun sendResponseChunk() {
@@ -167,11 +162,7 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   }
 
   private fun writeResponseChunk(chunkArray: ByteArray) {
-    central.write(
-      serviceUUID,
-      GattService.SUBMIT_RESPONSE_CHAR_UUID,
-      chunkArray
-    )
+    central.write(serviceUUID, GattService.SUBMIT_RESPONSE_CHAR_UUID, chunkArray)
   }
 
   private fun initResponseChunkSend() {
@@ -198,13 +189,9 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
 
 
   private fun sendResponseSize(size: Int) {
-    val data = Util.intToNetworkOrderedByteArray(size, FourBytes)
-    val crcValue = CRCValidator.calculate(data)
-    central.write(
-      serviceUUID,
-      GattService.RESPONSE_SIZE_CHAR_UUID,
-      data + Util.intToNetworkOrderedByteArray(crcValue.toInt(), TwoBytes)
-    )
+    val value = Util.intToNetworkOrderedByteArray(size, FourBytes)
+    val data = Util.addCrcToData(value)
+    central.write(serviceUUID, GattService.RESPONSE_SIZE_CHAR_UUID, data)
   }
 
   fun getCurrentState(): States {
