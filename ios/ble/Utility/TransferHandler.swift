@@ -79,9 +79,9 @@ class TransferHandler {
     }
 
     private func requestTransmissionReport() {
-        let data  = Data([UInt8(clamping: 1)])
-        var crc = CRCValidator.calculate(d: data)
-        delegate?.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data + Util.intToNetworkOrderedByteArray(num: Int(crc), byteCount: Util.ByteCount.TwoBytes), withResponse: true)
+        let value  = Data([UInt8(clamping: 1)])
+        let data = Util.addCrcToData(data: value)
+        delegate?.write(serviceUuid: BLEConstants.SERVICE_UUID, charUUID: NetworkCharNums.TRANSFER_REPORT_REQUEST_CHAR_UUID, data: data, withResponse: true)
         os_log(.info, "transmission report requested")
     }
 
@@ -112,8 +112,8 @@ class TransferHandler {
 
     private func sendResponseSize(size: Int) {
         let sizeByteArray = Util.intToNetworkOrderedByteArray(num: size, byteCount: Util.ByteCount.FourBytes)
-        let crc = CRCValidator.calculate(d: sizeByteArray)
-        delegate?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: sizeByteArray + Util.intToNetworkOrderedByteArray(num: Int(crc), byteCount: Util.ByteCount.TwoBytes), withResponse: true)
+        let data = Util.addCrcToData(data: sizeByteArray)
+        delegate?.write(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.RESPONSE_SIZE_CHAR_UUID, data: data, withResponse: true)
     }
 
     private func initResponseChunkSend() {

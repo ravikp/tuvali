@@ -100,8 +100,7 @@ class Chunker {
     private func frameChunk(seqNumber: ChunkSeqNumber, chunkLength: Int, fromIndex: Int, toIndex: Int) -> Data {
          if let chunkData = chunkData {
             let payload = Util.intToNetworkOrderedByteArray(num: seqNumber, byteCount: Util.ByteCount.TwoBytes) + chunkData.subdata(in: fromIndex + chunkData.startIndex..<chunkData.startIndex + toIndex)
-            let payloadCRC = CRCValidator.calculate(d: payload)
-            return payload + Util.intToNetworkOrderedByteArray(num: Int(payloadCRC), byteCount: Util.ByteCount.TwoBytes)
+            return Util.addCrcToData(data: payload)
         }
         return Data()
     }

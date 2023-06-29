@@ -33,7 +33,12 @@ struct Util {
         return Int(value)
     }
 
-  static func intToNetworkOrderedByteArray(num: Int, byteCount: ByteCount) -> Data {
+    static func addCrcToData(data: Data) -> Data {
+        let crcValue = CRCValidator.calculate(d: data)
+        return data + Util.intToNetworkOrderedByteArray(num: Int(crcValue), byteCount: Util.ByteCount.TwoBytes)
+    }
+
+   static func intToNetworkOrderedByteArray(num: Int, byteCount: ByteCount) -> Data {
       switch byteCount{
       case .FourBytes :
           return withUnsafeBytes(of: UInt32(num).bigEndian) { Data($0) }
