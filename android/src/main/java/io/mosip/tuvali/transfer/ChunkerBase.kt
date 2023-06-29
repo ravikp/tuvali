@@ -14,7 +14,7 @@ fun ChunkSeqNumber.toSeqIndex(): ChunkSeqIndex {
 }
 
 open class ChunkerBase(maxDataBytes: Int) {
-  private val seqNumberReservedByteSize = 2
+   val seqNumberReservedByteSize = 2
   private val crcChecksumValueByteSize = 2
   val chunkMetaSize = seqNumberReservedByteSize + crcChecksumValueByteSize
   val effectivePayloadSize = maxDataBytes - chunkMetaSize

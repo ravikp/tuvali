@@ -14,6 +14,7 @@ class TransferReport  {
   private val totalPages: Int
   val missingSequences: IntArray?
   private val logTag = Util.getLogTag(javaClass.simpleName)
+  private val crcValueInBytes = CRCValidator.getCrcSizeInBytes()
 
   //TODO: give static number to respective types below
   enum class ReportType {
@@ -22,7 +23,7 @@ class TransferReport  {
   }
 
   constructor(type: ReportType, missingSequences: IntArray, maxDataBytes: Int) {
-    val transferReportPageSize: Int = (maxDataBytes - PAGE_NUMBER_SIZE_IN_BYTES - TYPE_SIZE_IN_BYTES) / CHUNK_SEQUENCE_NUMBER_IN_BYTES
+    val transferReportPageSize: Int = (maxDataBytes - PAGE_NUMBER_SIZE_IN_BYTES - TYPE_SIZE_IN_BYTES - crcValueInBytes) / CHUNK_SEQUENCE_NUMBER_IN_BYTES
     val missedSequenceNumberCount = missingSequences.size
     this.totalPages = ceil(missedSequenceNumberCount.toDouble() / transferReportPageSize).toInt()
     this.type = type

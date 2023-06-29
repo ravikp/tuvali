@@ -17,14 +17,19 @@ enum class ErrorCode(val value: String) {
   PeripheralStateHandlerException("TVV_UNK_002"),
   VerifierTransferHandlerException("TVV_UNK_003"),
 
+
   InvalidURIException("TVW_CON_001"),
   MTUNegotiationException("TVW_CON_002"),
   //TODO: Create specific error codes for the below exception
   TransferFailedException("TVW_REP_001"),
+  VerifierDataReceivedCrcFailedException("TVW_TRA_003"),
 
   UnsupportedMTUSizeException("TVV_CON_001"),
   CorruptedChunkReceivedException("TVV_TRA_001"),
   TooManyFailureChunksException("TVV_TRA_002"),
+  WalletDataReceivedCrcFailedException("TVV_TRA_003"),
+  DataCorruptionException("TVV_TRA_004")
+
 }
 
 

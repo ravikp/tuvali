@@ -32,17 +32,15 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
   private var currentState: States = States.ResponseSizeReadPending
   private var assembler: Assembler? = null
   private var responseStartTimeInMillis: Long = 0
-  private val defaultTransferReportPageSize = 90
 
   override fun handleMessage(msg: Message) {
     when(msg.what) {
       IMessage.TransferMessageTypes.RESPONSE_SIZE_READ.ordinal -> {
         responseStartTimeInMillis = System.currentTimeMillis()
         val responseSizeReadSuccessMessage = msg.obj as ResponseSizeReadSuccessMessage
-        val maxChunkSize = responseSizeReadSuccessMessage.maxDataBytes
-
+        val maxChunkSize = responseSizeReadSuccessMessage.maxChunkSize
         try {
-          Log.d(logTag, "MTU size used for assembler: $maxChunkSize bytes")
+          Log.d(logTag, "MaxDataBytes used for assembler: $maxChunkSize bytes")
           assembler = Assembler(responseSizeReadSuccessMessage.responseSize, maxChunkSize)
         } catch (c: CorruptedChunkReceivedException) {
           this.sendMessage(ResponseTransferFailedMessage("Corrupted Data from Remote " + c.message.toString()))
@@ -88,10 +86,13 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
   private fun handleTransferReportRequest(maxDataBytes: Int) {
     if (assembler?.isComplete() == true) {
       Log.d(logTag, "success frame: transfer completed")
-      val transferReport = TransferReport(TransferReport.ReportType.SUCCESS, intArrayOf(), maxDataBytes)
+
+      val transferReport = TransferReport(TransferReport.ReportType.SUCCESS,intArrayOf(), maxDataBytes).toByteArray()
+      val crcValue = CRCValidator.calculate(transferReport)
+
       transferListener.sendDataOverNotification(
         GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
-        transferReport.toByteArray()
+        transferReport + Util.intToNetworkOrderedByteArray(crcValue.toInt(), ByteCount.TwoBytes)
       )
       this.sendMessage(ResponseTransferCompleteMessage(assembler?.data()!!))
       return
@@ -108,11 +109,12 @@ class TransferHandler(looper: Looper, private val peripheral: Peripheral, privat
       TransferReport.ReportType.MISSING_CHUNKS,
       missedSequenceNumbers!!,
       maxDataBytes
-    )
+    ).toByteArray()
+    val crcValue = CRCValidator.calculate(transferReport)
 
     transferListener.sendDataOverNotification(
       GattService.TRANSFER_REPORT_RESPONSE_CHAR_UUID,
-      transferReport.toByteArray()
+      transferReport + Util.intToNetworkOrderedByteArray(crcValue.toInt(),ByteCount.TwoBytes)
     )
   }
 

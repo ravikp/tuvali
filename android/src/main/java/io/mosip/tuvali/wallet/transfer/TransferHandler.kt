@@ -8,6 +8,7 @@ import io.mosip.tuvali.ble.central.Central
 
 import io.mosip.tuvali.transfer.*
 import io.mosip.tuvali.transfer.ByteCount.FourBytes
+import io.mosip.tuvali.transfer.ByteCount.TwoBytes
 import io.mosip.tuvali.verifier.GattService
 import io.mosip.tuvali.wallet.transfer.message.*
 import java.util.*
@@ -142,7 +143,14 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
   }
 
   private fun requestTransmissionReport() {
-    central.write(serviceUUID, GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID, byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte()))
+    val data = byteArrayOf(TransferReportRequest.ReportType.RequestReport.ordinal.toByte())
+    val crcValue = CRCValidator.calculate(data)
+    central.write(
+      serviceUUID,
+      GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID,
+      data + Util.intToNetworkOrderedByteArray(crcValue.toInt(), TwoBytes)
+    )
+
   }
 
   private fun sendResponseChunk() {
@@ -190,10 +198,12 @@ class TransferHandler(looper: Looper, private val central: Central, val serviceU
 
 
   private fun sendResponseSize(size: Int) {
+    val data = Util.intToNetworkOrderedByteArray(size, FourBytes)
+    val crcValue = CRCValidator.calculate(data)
     central.write(
       serviceUUID,
       GattService.RESPONSE_SIZE_CHAR_UUID,
-      Util.intToNetworkOrderedByteArray(size, FourBytes)
+      data + Util.intToNetworkOrderedByteArray(crcValue.toInt(), TwoBytes)
     )
   }
 
