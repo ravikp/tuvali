@@ -8,9 +8,10 @@ import io.mosip.tuvali.ble.central.impl.Controller
 import io.mosip.tuvali.ble.central.state.IMessageSender
 import io.mosip.tuvali.ble.central.state.StateHandler
 import io.mosip.tuvali.ble.central.state.message.*
+import io.opentelemetry.api.OpenTelemetry
 import java.util.*
 
-class Central(context: Context, centralLister: ICentralListener) {
+class Central(context: Context, centralLister: ICentralListener, val otel: OpenTelemetry) {
   private val controller: Controller = Controller(context)
   private val handlerThread = HandlerThread("CentralHandlerThread", Process.THREAD_PRIORITY_DEFAULT)
   private var messageSender: IMessageSender
@@ -47,9 +48,12 @@ class Central(context: Context, centralLister: ICentralListener) {
   }
 
   fun write(serviceUuid: UUID, charUUID: UUID, data: ByteArray) {
+    val span = otel.getTracer("Wallet").spanBuilder("Write Method").startSpan()
+    span.addEvent("Write data packet")
     val writeMessage = WriteMessage(serviceUuid, charUUID, data)
 
     messageSender.sendMessage(writeMessage)
+    span.end()
   }
 
   fun read(serviceUuid: UUID, charUUID: UUID) {

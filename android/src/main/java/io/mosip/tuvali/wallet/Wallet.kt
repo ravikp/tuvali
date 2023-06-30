@@ -10,6 +10,7 @@ import io.mosip.tuvali.common.uri.OpenId4vpURI
 import io.mosip.tuvali.exception.handlers.ExceptionHandler
 import io.mosip.tuvali.transfer.Util.Companion.getLogTag
 import io.mosip.tuvali.wallet.exception.InvalidURIException
+import io.opentelemetry.api.OpenTelemetry
 
 class Wallet(private val context: Context) : IWallet {
   private val logTag = getLogTag(javaClass.simpleName)
@@ -19,7 +20,7 @@ class Wallet(private val context: Context) : IWallet {
   private val tryExecuteSync = TryExecuteSync(bleExceptionHandler)
 
 
-  override fun startConnection( uri: String) {
+  override fun startConnection(uri: String, otel: OpenTelemetry) {
     Log.d(logTag, "startConnection with firstPartOfVerifierPK $uri at ${System.nanoTime()}")
 
     tryExecuteSync.run {
@@ -31,7 +32,7 @@ class Wallet(private val context: Context) : IWallet {
         throw InvalidURIException("Received Invalid URI: $uri")
       }
 
-      bleCommunicator = WalletBleCommunicator(context, eventEmitter, bleExceptionHandler::handleException)
+      bleCommunicator = WalletBleCommunicator(context, eventEmitter, bleExceptionHandler::handleException, otel)
       bleCommunicator?.setAdvPayload(openId4vpURI.getName(), openId4vpURI.getHexPK())
       bleCommunicator?.startScanning()
     }

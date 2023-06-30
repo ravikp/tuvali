@@ -6,12 +6,13 @@ import com.facebook.react.bridge.ReactApplicationContext
 import com.facebook.react.uimanager.ViewManager
 import io.mosip.tuvali.verifier.Verifier
 import io.mosip.tuvali.wallet.Wallet
+import io.opentelemetry.api.OpenTelemetry
 
 
 class RNTuvali : ReactPackage {
   override fun createNativeModules(reactContext: ReactApplicationContext): List<NativeModule> {
     return listOf(
-      RNWalletModule(RNEventEmitter(reactContext), Wallet(reactContext), reactContext),
+      RNWalletModule(RNEventEmitter(reactContext), Wallet(reactContext),reactContext),
       RNVerifierModule(RNEventEmitter(reactContext), Verifier(reactContext), reactContext),
       RNVersionModule(reactContext)
     )

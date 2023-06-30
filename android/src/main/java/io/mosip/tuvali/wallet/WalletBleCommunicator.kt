@@ -33,20 +33,26 @@ import io.mosip.tuvali.wallet.exception.WalletException
 import io.mosip.tuvali.wallet.transfer.ITransferListener
 import io.mosip.tuvali.wallet.transfer.TransferHandler
 import io.mosip.tuvali.wallet.transfer.message.*
+import io.opentelemetry.api.OpenTelemetry
 import org.bouncycastle.util.encoders.Hex
 import java.security.SecureRandom
 import java.util.*
 
 private const val MTU_REQUEST_RETRY_DELAY_TIME_IN_MILLIS = 500L
 
-class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmitter, private val handleException: (BLEException) -> Unit) : ICentralListener, ITransferListener {
+class WalletBleCommunicator(
+  context: Context,
+  private val eventEmitter: EventEmitter,
+  private val handleException: (BLEException) -> Unit,
+  private val otel: OpenTelemetry
+) : ICentralListener, ITransferListener {
   private val logTag = getLogTag(javaClass.simpleName)
 
   private val secureRandom: SecureRandom = SecureRandom()
   private lateinit var verifierPK: ByteArray
   private var walletCryptoBox: WalletCryptoBox = WalletCryptoBoxBuilder.build(secureRandom)
   private var secretsTranslator: SecretsTranslator? = null
-
+ private val tracer = otel.getTracer("Wallet")
   private var advPayload: ByteArray? = null
   private var transferHandler: TransferHandler
   private val handlerThread = HandlerThread("TransferHandlerThread", Process.THREAD_PRIORITY_DEFAULT)
@@ -74,7 +80,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
     NOT_CONNECTED, CONNECTING, CONNECTED
   }
   init {
-    central = Central(context, this@WalletBleCommunicator)
+    central = Central(context, this@WalletBleCommunicator, otel)
     handlerThread.start()
     transferHandler = TransferHandler(handlerThread.looper, central, VerifierBleCommunicator.SERVICE_UUID, this@WalletBleCommunicator)
   }
@@ -90,6 +96,8 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
   }
 
   fun writeToIdentifyRequest() {
+    val span = tracer.spanBuilder("Identity Request").startSpan()
+    span.addEvent("Start public key writing")
     val publicKey = walletCryptoBox.publicKey()
     secretsTranslator = walletCryptoBox.buildSecretsTranslator(verifierPK)
     val nonce = secretsTranslator?.nonce
@@ -97,6 +105,7 @@ class WalletBleCommunicator(context: Context, private val eventEmitter: EventEmi
     Log.d(logTag, "Started to write - generated nonce ${
       Hex.toHexString(nonce)
     }, Public Key of wallet: ${Hex.toHexString(publicKey)}")
+    span.end()
   }
 
   override fun onScanStartedFailed(errorCode: Int) {
