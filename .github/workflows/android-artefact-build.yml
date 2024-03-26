@@ -51,7 +51,7 @@ jobs:
       - name: Commit Artifacts
         run: |
           git add .
-          git commit -m "chore(#890): changes in script"
+          git commit --allow-empty -m "chore(#890): changes in script"
 
       - name: Push Changes to Specific Branch
         run: |
