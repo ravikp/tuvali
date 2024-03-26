@@ -50,7 +50,7 @@ jobs:
 
       - name: Commit Artifacts
         run: |
-          git add ./artefacts/tuvali-android-artefact/
+          git add .
           git commit -m "chore(#890): changes in script" -a || echo "No changes to commit"
 
       - name: Push Changes to Specific Branch
