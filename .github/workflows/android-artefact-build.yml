@@ -53,8 +53,7 @@ jobs:
 
       - name: Push Changes to Specific Branch
         run: |
-            git push origin HEAD:inji-Kotlin-ios-artefact
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          env:
+              git push origin HEAD:inji-Kotlin-ios-artefact
+        env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
