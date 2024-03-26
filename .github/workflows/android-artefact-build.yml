@@ -34,7 +34,6 @@ jobs:
       - name: Build Artifact
         run: |
             cd android
-            echo "This is a test file to check commit and push operations." > testfile.txt
             chmod +x ./gradlew
             ./gradlew assembleDebug
 
