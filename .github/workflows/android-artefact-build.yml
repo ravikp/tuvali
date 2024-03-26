@@ -20,7 +20,8 @@ jobs:
           distribution: 'adopt'
 
       - name: Build Artifact
-        run: cd android
+        run: |
+            cd android
             chmod +x ./gradlew
             ./gradlew assembleRelease
 
