@@ -17,6 +17,7 @@ jobs:
         uses: actions/setup-node@v3
         with:
             node-version: '16'
+
       - name: Install npm dependencies
         run: |
             npm install -g yarn # Install yarn globally if you're using yarn
