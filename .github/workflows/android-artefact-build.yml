@@ -3,7 +3,7 @@ name: Android Artefact Build
 on:
   push:
     paths:
-      - '/android/**'
+      - '/'
 
 jobs:
   build:
