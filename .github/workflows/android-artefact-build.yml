@@ -40,7 +40,7 @@ jobs:
 
       - name: Replace Existing Artifact
         run: |
-          ls -la ./app/build/outputs/aar/
+          ls -la ./android/build/outputs/aar/
           mkdir -p ./artefacts/tuvali-android-artefact/
           cp ./app/build/outputs/aar/*.aar ./artefacts/tuvali-android-artefact/
 
