@@ -39,7 +39,7 @@ jobs:
         run: |
           ls -la ./android/build/outputs/aar/
           mkdir -p ./artefacts/tuvali-android-artefact/
-          cp ./app/build/outputs/aar/*.aar ./artefacts/tuvali-android-artefact/
+          cp ./android/build/outputs/aar/*.aar ./artefacts/tuvali-android-artefact/
 
       - name: Configure Git
         run: |
