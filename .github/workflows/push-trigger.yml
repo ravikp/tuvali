@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       message:
-        description: 'Message for manually triggering'
+        description: 'Message for manual triggering'
         required: false
         default: 'Triggered for Updates'
         type: string
