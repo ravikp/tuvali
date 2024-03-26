@@ -23,7 +23,7 @@ jobs:
         run: |
             cd android
             chmod +x ./gradlew
-            ./gradlew assembleRelease
+            ./gradlew assembleDebug
 
       - name: Replace Existing Artifact
         run: |
