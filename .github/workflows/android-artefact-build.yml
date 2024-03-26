@@ -20,7 +20,9 @@ jobs:
           distribution: 'adopt'
 
       - name: Build Artifact
-        run: ./gradlew assembleRelease
+        run: cd android
+            chmod +x ./gradlew
+            ./gradlew assembleRelease
 
       - name: Replace Existing Artifact
         run: |
