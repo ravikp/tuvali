@@ -1,0 +1,27 @@
+name: Android Artefact Build
+
+on:
+  push:
+    paths:
+      - '/android/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up JDK
+        uses: actions/setup-java@v2
+        with:
+          java-version: '11'
+
+      - name: Build Artifact
+        run: ./gradlew assembleRelease
+
+      - name: Replace Existing Artifact
+        run: |
+          cp /android/build/outputs/aar/android-debug.aar /artefacts/tuvali-android-artefact/android-debug.aar
+          cp /android/build/outputs/aar/android-release.aar /artefacts/tuvali-android-artefact/android-release.aar
