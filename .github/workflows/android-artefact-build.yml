@@ -1,9 +1,9 @@
-name: Android Artefact Build
+name: Android Artifact Build
 
 on:
   push:
     paths:
-      - '/'
+      - '**' # Triggers the workflow on changes to any file in the repository
 
 jobs:
   build:
@@ -23,5 +23,22 @@ jobs:
 
       - name: Replace Existing Artifact
         run: |
-          cp /android/build/outputs/aar/android-debug.aar /artefacts/tuvali-android-artefact/android-debug.aar
-          cp /android/build/outputs/aar/android-release.aar /artefacts/tuvali-android-artefact/android-release.aar
+          mkdir -p ./artefacts/tuvali-android-artefact/
+          cp ./app/build/outputs/aar/*.aar ./artefacts/tuvali-android-artefact/
+
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Commit Artifacts
+        run: |
+          git add ./artefacts/tuvali-android-artefact/
+          git commit -m "Update Android Artifacts" -a || echo "No changes to commit"
+
+      - name: Push Changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          force: true
+          directory: .
