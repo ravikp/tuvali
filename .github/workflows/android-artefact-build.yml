@@ -51,9 +51,10 @@ jobs:
           git add ./artefacts/tuvali-android-artefact/
           git commit -m "Update Android Artifacts" -a || echo "No changes to commit"
 
-      - name: Push Changes
-        uses: ad-m/github-push-action@master
+      - name: Push Changes to Specific Branch
+        run: |
+            git push origin HEAD:inji-Kotlin-ios-artefact
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          force: true
-          directory: .
+          env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
