@@ -29,9 +29,6 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Install Dependencies
-        run: npm install
-
       - name: Build Artifact
         run: |
             cd android
