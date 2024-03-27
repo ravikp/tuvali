@@ -32,12 +32,14 @@ jobs:
           cd ios-tuvali-library
           swift package init --type library
           rm -rf /ios-tuvali-library
-          ls
 
       - name: Move required files
         run: |
+          cp tuvali/ios/Wallet tuvali/ios-tuvali-library/Sources/ios-tuvali-library
+          cp tuvali/ios/ble tuvali/ios-tuvali-library/Sources/ios-tuvali-library
+          cp tuvali/ios/crypto tuvali/ios-tuvali-library/Sources/ios-tuvali-library
+          cp tuvali/ios/common tuvali/ios-tuvali-library/Sources/ios-tuvali-library
           cd ios-tuvali-library/Sources/ios-tuvali-library
-          pwd
           ls
 
 #      - name: Move required files
