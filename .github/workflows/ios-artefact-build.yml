@@ -21,20 +21,17 @@ jobs:
         with:
           node-version: '16'
 
-      - name: Install npm dependencies
-        run: |
-          npm install -g yarn # Install yarn globally if you're using yarn
-          yarn install # or `npm install` if using npm
+#      - name: Install npm dependencies
+#        run: |
+#          npm install -g yarn # Install yarn globally if you're using yarn
+#          yarn install # or `npm install` if using npm
 
       - name: Create Library Folder and Create Swift Library
         run: |
           mkdir ios-tuvali-library
           cd ios-tuvali-library
           swift package init --type library
-          ls
-          cd Sources
-          ls
-          cd Sources/ios-tuvali-library
+          rm -rf /ios-tuvali-library
           ls
 
 #      - name: Move required files
