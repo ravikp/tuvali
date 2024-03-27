@@ -30,10 +30,14 @@ jobs:
         run: |
           mkdir ios-tuvali-library
           cd ios-tuvali-library
-          pwd
           swift package init --type library
+          ls
+          cd Sources
+          ls
+          cd Sources/ios-tuvali-library
+          ls
 
-#      - name: Create Swift Library
+#      - name: Move required files
 #        run: |
 #          ls
 
