@@ -35,7 +35,7 @@ jobs:
 
       - name: Move required files
         run: |
-          cp ./ios/Wallet ./ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/Wallet ./ios-tuvali-library/Sources/ios-tuvali-library
           cp tuvali/ios/ble tuvali/ios-tuvali-library/Sources/ios-tuvali-library
           cp tuvali/ios/crypto tuvali/ios-tuvali-library/Sources/ios-tuvali-library
           cp tuvali/ios/common tuvali/ios-tuvali-library/Sources/ios-tuvali-library
