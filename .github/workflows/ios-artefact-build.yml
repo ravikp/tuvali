@@ -34,6 +34,12 @@ jobs:
           rm -rf /ios-tuvali-library
           ls
 
+      - name: Move required files
+        run: |
+          cd ios-tuvali-library/Sources/ios-tuvali-library
+          pwd
+          ls
+
 #      - name: Move required files
 #        run: |
 #          ls
