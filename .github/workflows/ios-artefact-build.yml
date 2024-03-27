@@ -1,0 +1,49 @@
+name: iOS Artefact Build
+
+on:
+  push:
+    paths:
+      - '**' # Triggers the workflow on changes to any file in the repository
+
+jobs:
+  build:
+    runs-on: macos-latest
+    permissions:
+      contents: write  # Grants permission to push code and manage releases
+      pull-requests: write  # Grants permission to write pull requests
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install npm dependencies
+        run: |
+          npm install -g yarn # Install yarn globally if you're using yarn
+          yarn install # or `npm install` if using npm
+
+      - name: Create Library Folder
+        run: |
+          mkdir ios-tuvali-library
+          cd ios-tuvali-library
+
+      - name: Create Swift Library
+        run: |
+          swift package init --type library
+          ls
+
+#      - name: Build iOS Framework
+#        run: |
+#          xcodebuild -destination="generic/platform=iOS" -archivePath artefacts/tuvali-ios-artfact.xcframework/ios-arm64_x86_64-simulator/tuvali_ios_framework.framework/tuvali-ios-framework.xcarchive clean archive | xcpretty
+#
+#      - name: Replace Existing XCFramework
+#        run: |
+#          # Remove existing XCFramework
+#          rm -rf tuvali_ios_framework.xcframework
+#
+#          # Move the newly built XCFramework to the appropriate location
+#          cp artefacts/tuvali-ios-artfact.xcframework/ios-arm64_x86_64-simulator/tuvali_ios_framework.framework/tuvali-ios-framework.xcarchive .
