@@ -26,15 +26,15 @@ jobs:
           npm install -g yarn # Install yarn globally if you're using yarn
           yarn install # or `npm install` if using npm
 
-      - name: Create Library Folder
+      - name: Create Library Folder and Create Swift Library
         run: |
           mkdir ios-tuvali-library
           cd ios-tuvali-library
           pwd
+          swift package init --type library
 
 #      - name: Create Swift Library
 #        run: |
-#          swift package init --type library
 #          ls
 
 #      - name: Build iOS Framework
