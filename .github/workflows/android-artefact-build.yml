@@ -20,8 +20,8 @@ jobs:
       - name: Check for Repo changes
         run: |
           if git diff --quiet HEAD~1 HEAD -- './android/**'; then
-          echo "No changes in Android directory"
-          exit 1
+            echo "No changes in Android directory"
+            exit 1
           fi
 
       - name: Set up Node.js
