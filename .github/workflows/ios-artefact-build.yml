@@ -53,14 +53,14 @@ jobs:
           swift package init --type library
           rm -rf /ios-tuvali-library
 
-      - name: Move  required files
-        run: |
-          cp -R ./ios/Wallet ./ios-tuvali-library/Sources/ios-tuvali-library
-          cp -R ./ios/ble ./ios-tuvali-library/Sources/ios-tuvali-library
-          cp -R ./ios/crypto ./ios-tuvali-library/Sources/ios-tuvali-library
-          cp -R ./ios/common ./ios-tuvali-library/Sources/ios-tuvali-library
-          cd ios-tuvali-library/Sources/ios-tuvali-library
-          ls
+#      - name: Move  required files
+#        run: |
+#          cp -R ./ios/Wallet ./ios-tuvali-library/Sources/ios-tuvali-library
+#          cp -R ./ios/ble ./ios-tuvali-library/Sources/ios-tuvali-library
+#          cp -R ./ios/crypto ./ios-tuvali-library/Sources/ios-tuvali-library
+#          cp -R ./ios/common ./ios-tuvali-library/Sources/ios-tuvali-library
+#          cd ios-tuvali-library/Sources/ios-tuvali-library
+#          ls
 
       - name: Edit Package.swift
         run: |
