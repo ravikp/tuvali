@@ -20,7 +20,7 @@ class Wallet(private val context: Context) : IWallet {
 
 
   override fun startConnection( uri: String) {
-    Log.d(logTag, "startConnection:::::: with firstPartOfVerifierPK $uri at ${System.nanoTime()}")
+    Log.d(logTag, "startConnection with firstPartOfVerifierPK $uri at ${System.nanoTime()}")
 
     tryExecuteSync.run {
       Log.d(logTag, "synchronized startConnection wallet object with uri $uri at ${System.nanoTime()}")
