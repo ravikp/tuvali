@@ -17,7 +17,7 @@ jobs:
 
       - name: Check for Repo changes
         run: |
-          if git diff --quiet HEAD^ HEAD -- 'path/android/**'; then
+          if git diff --quiet HEAD^ HEAD -- './android/**'; then
           echo "No changes in directory"
           exit 1
           fi
