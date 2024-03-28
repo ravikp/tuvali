@@ -29,18 +29,20 @@ jobs:
 #          # Add Swift to PATH
 #          echo 'export PATH=/Library/Developer/Toolchains/swift-5.10.0-RELEASE.xctoolchain/usr/bin:$PATH' >> ~/.bash_profile
 
-      - name: Install Homebrew
+      - name: Install swiftenv
         run: |
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+          git clone https://github.com/kylef/swiftenv.git ~/.swiftenv
+          echo 'export SWIFTENV_ROOT="$HOME/.swiftenv"' >> ~/.bash_profile
+          echo 'export PATH="$SWIFTENV_ROOT/bin:$PATH"' >> ~/.bash_profile
+          echo 'eval "$(swiftenv init -)"' >> ~/.bash_profile
+          source ~/.bash_profile
 
       - name: Install Swift
-        run: |
-            brew install swiftenv && swiftenv install 5.10.0
+        run: swiftenv install 5.10.0
 
       - name: Update PATH
-        run: |
-            echo 'export PATH="$HOME/.swiftenv/shims:$PATH"' >> ~/.bash_profile
-          
+        run: echo 'export PATH="$HOME/.swiftenv/shims:$PATH"' >> ~/.bash_profile
+
       - name: Create Library Folder and Create Swift Library
         run: |
           mkdir ios-tuvali-library
