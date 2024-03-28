@@ -53,15 +53,6 @@ jobs:
           swift package init --type library
           rm -rf /ios-tuvali-library
 
-#      - name: Move  required files
-#        run: |
-#          cp -R ./ios/Wallet ./ios-tuvali-library/Sources/ios-tuvali-library
-#          cp -R ./ios/ble ./ios-tuvali-library/Sources/ios-tuvali-library
-#          cp -R ./ios/crypto ./ios-tuvali-library/Sources/ios-tuvali-library
-#          cp -R ./ios/common ./ios-tuvali-library/Sources/ios-tuvali-library
-#          cd ios-tuvali-library/Sources/ios-tuvali-library
-#          ls
-
       - name: Edit Package.swift
         run: |
           cp ./artefacts/tuvali-ios-artefact/Package.swift ./ios-tuvali-library/Package.swift
@@ -74,6 +65,14 @@ jobs:
           brew install zlib
           swift build -c debug -Xlinker -L/usr/local/lib
 
+      - name: Move  required files
+        run: |
+          cp -R ./ios/Wallet ./ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/ble ./ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/crypto ./ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/common ./ios-tuvali-library/Sources/ios-tuvali-library
+          cd ios-tuvali-library/Sources/ios-tuvali-library
+          ls
 
 #      - name: Install npm dependencies
 #        run: |
