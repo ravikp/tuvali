@@ -12,8 +12,8 @@ let package = Package(
             targets: ["ios-tuvali-library"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/1024jp/GzipSwift", from: "6.0.0"),
-	.package(url: "https://github.com/ivanesik/CrcSwift.git", from: "0.0.3")
+        .package(name: "Gzip", url: "https://github.com/1024jp/GzipSwift", from: Version(6, 0, 0)),
+	      .package(url: "https://github.com/ivanesik/CrcSwift.git", from: "0.0.3")
     ],
     targets: [
         // Targets are the basic building blocks of a package, defining a module or a test suite.
