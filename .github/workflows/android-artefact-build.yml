@@ -57,7 +57,6 @@ jobs:
 
       - name: Push Changes to Specific Branch
         run: |
-              git pull --rebase
               git push origin inji-Kotlin-ios-artefact
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
