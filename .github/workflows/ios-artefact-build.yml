@@ -72,21 +72,25 @@ jobs:
           cp -R ./ios/crypto ./ios-tuvali-library/Sources/ios-tuvali-library
           cp -R ./ios/common ./ios-tuvali-library/Sources/ios-tuvali-library
           cd ios-tuvali-library/Sources/ios-tuvali-library
-          ls
 
-#      - name: Install npm dependencies
-#        run: |
-#          npm install -g yarn # Install yarn globally if you're using yarn
-#          yarn install # or `npm install` if using npm
+      - name: Replace Existing Artifact
+        run: |
+          mkdir -p ./artefacts/tuvali-ios-artefact/
+          cp -R ./ios-tuvali-library ./artefacts/tuvali-ios-artefact/
+          cp ./artefacts/tuvali-ios-artefact/ios-tuvali-library/Package.swift ./artefacts/tuvali-ios-artefact/Package.swift
 
-#      - name: Build iOS Framework
-#        run: |
-#          xcodebuild -destination="generic/platform=iOS" -archivePath artefacts/tuvali-ios-artfact.xcframework/ios-arm64_x86_64-simulator/tuvali_ios_framework.framework/tuvali-ios-framework.xcarchive clean archive | xcpretty
-#
-#      - name: Replace Existing XCFramework
-#        run: |
-#          # Remove existing XCFramework
-#          rm -rf tuvali_ios_framework.xcframework
-#
-#          # Move the newly built XCFramework to the appropriate location
-#          cp artefacts/tuvali-ios-artfact.xcframework/ios-arm64_x86_64-simulator/tuvali_ios_framework.framework/tuvali-ios-framework.xcarchive .
+      - name: Configure Git
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+
+      - name: Commit Artifacts
+        run: |
+          git add .
+          git commit --allow-empty -m "chore(#891): changes in script"
+
+      - name: Push Changes to Specific Branch
+        run: |
+          git push origin inji-Kotlin-ios-artefact
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
