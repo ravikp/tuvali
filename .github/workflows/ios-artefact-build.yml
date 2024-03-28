@@ -48,7 +48,7 @@ jobs:
 
       - name: Create Library Folder and Create Swift Library
         run: |
-          mkdir ios-tuvali-library
+          mkdir -p ios-tuvali-library
           cd ios-tuvali-library
           swift package init --type library
           rm -rf /ios-tuvali-library
