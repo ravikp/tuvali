@@ -21,9 +21,9 @@ jobs:
         with:
           node-version: '16'
 
-    - name: Use Swift 5.10.0
-      uses: actions/setup-swift@v2
-      with:
+      - name: Use Swift 5.10.0
+        uses: actions/setup-swift@v2
+        with:
           version: 5.10.0
 
 #      - name: Install npm dependencies
