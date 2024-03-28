@@ -92,6 +92,7 @@ jobs:
 
       - name: Push Changes to Specific Branch
         run: |
+          git pull origin inji-Kotlin-ios-artefact --rebase
           git push origin inji-Kotlin-ios-artefact
           git remote add abcd https://github.com/AyushiDey/tuvali_git_test.git
           git push abcd

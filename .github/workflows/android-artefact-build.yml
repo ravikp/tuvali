@@ -2,8 +2,6 @@ name: Android Artifact Build
 
 on:
   push:
-    branches:
-      - inji-Kotlin-ios-artefact
     paths:
       - 'android/**' # Triggers the workflow on changes to any file in the repository
 
@@ -57,6 +55,7 @@ jobs:
 
       - name: Push Changes to Specific Branch
         run: |
+              git pull origin inji-Kotlin-ios-artefact --rebase
               git push origin inji-Kotlin-ios-artefact
         env:
             GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
