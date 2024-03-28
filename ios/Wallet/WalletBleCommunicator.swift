@@ -1,5 +1,5 @@
 import Foundation
-import GZIP
+import Gzip
 import os
 @objc(Wallet)
 @available(iOS 13.0, *)
@@ -18,7 +18,7 @@ class WalletBleCommunicator: NSObject {
         central = Central()
     }
 
-    
+
 
     func setAdvIdentifier(identifier: Data) {
         self.advIdentifier = identifier
