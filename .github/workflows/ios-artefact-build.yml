@@ -65,13 +65,13 @@ jobs:
       - name: Edit Package.swift
         run: |
           cp ./artefacts/tuvali-ios-artefact/Package.swift ./ios-tuvali-library/Package.swift
-      - name: Clean Build Artifacts
-        run: swift package clean
+
+
 
       - name: Build Swift Package
         run: |
           cd ios-tuvali-library
-
+          swift package clean
           swift package update
           swift build -c debug
 
