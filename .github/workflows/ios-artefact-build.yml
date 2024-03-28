@@ -42,9 +42,10 @@ jobs:
           cd ios-tuvali-library/Sources/ios-tuvali-library
           ls
 
-#      - name: Move required files
-#        run: |
-#          ls
+      - name: Edit Package.swift
+        run: |
+          cp ./artefacts/tuvali-ios-artefact/Package.swift ./ios-tuvali-library/Package.swift
+          nano ./ios-tuvali-library/Package.swift
 
 #      - name: Build iOS Framework
 #        run: |
