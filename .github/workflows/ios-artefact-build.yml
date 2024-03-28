@@ -24,7 +24,7 @@ jobs:
       - name: Install Swift
         run: |
           # Download Swift 5.10.0 toolchain
-          sudo installer -pkg swift-5.10.0-RELEASE-osx.pkg -target /
+          sudo installer -pkg swift-5.10.0-RELEASE.pkg -target /
 
           # Add Swift to PATH
           echo 'export PATH=/Library/Developer/Toolchains/swift-5.10.0-RELEASE.xctoolchain/usr/bin:$PATH' >> ~/.bash_profile
