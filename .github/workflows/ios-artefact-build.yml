@@ -21,6 +21,11 @@ jobs:
         with:
           node-version: '16'
 
+    - name: Use Swift 5.10.0
+      uses: actions/setup-swift@v2
+      with:
+          version: 5.10.0
+
 #      - name: Install npm dependencies
 #        run: |
 #          npm install -g yarn # Install yarn globally if you're using yarn
@@ -50,7 +55,7 @@ jobs:
         run: |
           cd ios-tuvali-library
           swift build
-      
+
 #      - name: Build iOS Framework
 #        run: |
 #          xcodebuild -destination="generic/platform=iOS" -archivePath artefacts/tuvali-ios-artfact.xcframework/ios-arm64_x86_64-simulator/tuvali_ios_framework.framework/tuvali-ios-framework.xcarchive clean archive | xcpretty
