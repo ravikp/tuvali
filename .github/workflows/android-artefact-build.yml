@@ -2,6 +2,8 @@ name: Android Artifact Build
 
 on:
   push:
+    branches:
+      - inji-Kotlin-ios-artefact
     paths:
       - './android/**' # Triggers the workflow on changes to any file in the repository
 
