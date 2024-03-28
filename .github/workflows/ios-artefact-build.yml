@@ -69,6 +69,7 @@ jobs:
       - name: Build Swift Package
         run: |
           cd ios-tuvali-library
+          swift package update
           swift build
 
 #      - name: Install npm dependencies
