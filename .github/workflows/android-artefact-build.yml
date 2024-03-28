@@ -5,7 +5,7 @@ on:
     branches:
       - inji-Kotlin-ios-artefact
     paths:
-      - '**' # Triggers the workflow on changes to any file in the repository
+      - './android/**' # Triggers the workflow on changes to any file in the repository
 
 jobs:
   build:
@@ -17,12 +17,12 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v2
 
-      - name: Check for Repo changes
-        run: |
-          if git diff --quiet HEAD~1 HEAD -- './android/**'; then
-            echo "No changes in Android directory"
-            exit 1
-          fi
+#      - name: Check for Repo changes
+#        run: |
+#          if git diff --quiet HEAD~1 HEAD -- './android/**'; then
+#            echo "No changes in Android directory"
+#            exit 1
+#          fi
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
