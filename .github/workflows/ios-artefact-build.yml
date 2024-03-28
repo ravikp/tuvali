@@ -45,8 +45,12 @@ jobs:
       - name: Edit Package.swift
         run: |
           cp ./artefacts/tuvali-ios-artefact/Package.swift ./ios-tuvali-library/Package.swift
-          nano ./ios-tuvali-library/Package.swift
 
+      - name: Build Swift Package
+        run: |
+          cd ios-tuvali-library
+          swift build
+      
 #      - name: Build iOS Framework
 #        run: |
 #          xcodebuild -destination="generic/platform=iOS" -archivePath artefacts/tuvali-ios-artfact.xcframework/ios-arm64_x86_64-simulator/tuvali_ios_framework.framework/tuvali-ios-framework.xcarchive clean archive | xcpretty
