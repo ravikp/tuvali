@@ -1,5 +1,5 @@
 import Foundation
-import Gzip
+//import Gzip
 import os
 @objc(Wallet)
 @available(iOS 13.0, *)
