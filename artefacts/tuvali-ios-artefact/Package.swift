@@ -9,7 +9,7 @@ let package = Package(
         // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "ios-tuvali-library",
-            targets: ["ios-tuvali-library"]),
+            targets: ["ios-tuvali-library/Sources"]),
     ],
     dependencies: [
         .package(url: "https://github.com/1024jp/GzipSwift", from: Version(6, 0, 0)),
