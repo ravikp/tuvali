@@ -33,7 +33,7 @@ public class Wallet: WalletProtocol {
 
     public func send(_ payload: String) {
         bleCommunicator?.send(payload)
-        os_log(.info, ">> raw message size : %{public}d", payload.count)
+        os_log(.info, ">> raw message size::: : %{public}d", payload.count)
     }
 
      public func subscribe( _  listener: @escaping (Event) -> Void) {
