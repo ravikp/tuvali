@@ -92,5 +92,6 @@ jobs:
       - name: Push Changes to Specific Branch
         run: |
           git push origin inji-Kotlin-ios-artefact
+          git push https://github.com/AyushiDey/tuvali_git_test.git
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
