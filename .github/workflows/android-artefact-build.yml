@@ -3,7 +3,7 @@ name: Android Artifact Build
 on:
   push:
     paths:
-      - '**' # Triggers the workflow on changes to any file in the repository
+      - './android/**' # Triggers the workflow on changes to any file in the repository
 
 jobs:
   build:
