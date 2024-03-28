@@ -71,7 +71,8 @@ jobs:
           cd ios-tuvali-library
           swift package clean
           swift package update
-          swift build -c debug
+          apt-get install zlib-dev
+          swift build -c debug -Xlinker -L/usr/local/lib
 
 
 #      - name: Install npm dependencies
