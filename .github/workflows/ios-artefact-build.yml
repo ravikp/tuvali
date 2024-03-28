@@ -71,7 +71,7 @@ jobs:
           cd ios-tuvali-library
           swift package clean
           swift package update
-          apt-get install zlib-dev
+          brew install zlib-dev
           swift build -c debug -Xlinker -L/usr/local/lib
 
 
