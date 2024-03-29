@@ -1,9 +1,10 @@
 name: Android Artefact Build
 
 on:
-  push:
-    paths:
-      - 'android/**' # Triggers the workflow on changes to any file in the repository
+#   push:
+#    paths:
+#      - 'android/**' # Triggers the workflow on changes to any file in the repository
+    workflow_dispatch: #
 
 jobs:
   build:
