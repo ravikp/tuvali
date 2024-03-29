@@ -23,7 +23,7 @@ jobs:
 
       - name: Create Library Folder and Create Swift Library
         run: |
-          cd ./artefacts/swift-artefact/
+          cd ./artefacts/swift-artefact/ios-tuvali-library
           ls
           rm -rf ./artefacts/swift-artefact/ios-tuvali-library
           cd ./artefacts/swift-artefact/
