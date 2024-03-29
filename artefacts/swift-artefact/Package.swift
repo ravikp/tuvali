@@ -12,6 +12,7 @@ let package = Package(
             targets: ["ios-tuvali-library"]),
     ],
     dependencies: [
+        // Define our package's dependencies
         .package(url: "https://github.com/1024jp/GzipSwift", from: "6.0.0"),
         .package(url: "https://github.com/ivanesik/CrcSwift.git", from: "0.0.3")
     ],
@@ -19,6 +20,7 @@ let package = Package(
         .target(
             name: "ios-tuvali-library",
             dependencies: [
+                // Include GzipSwift and CrcSwift as dependencies for this target
                 .product(name: "Gzip", package: "GzipSwift"),
                 .product(name: "CrcSwift", package: "CrcSwift")
             ]),
@@ -27,5 +29,3 @@ let package = Package(
             dependencies: ["ios-tuvali-library"]),
     ]
 )
-
-
