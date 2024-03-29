@@ -3,7 +3,7 @@ name: iOS Artefact Build
 on:
   push:
     paths:
-      - '**' # Triggers the workflow on changes to any file in the repository
+      - 'ios/**' # Triggers the workflow on changes to any file in the repository
 
 jobs:
   build:
