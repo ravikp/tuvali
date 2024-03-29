@@ -3,7 +3,7 @@ name: iOS Artefact Build
 on:
   push:
     paths:
-      - 'ios/**' # Triggers the workflow on changes to any file in the repository
+      - '**' # Triggers the workflow on changes to any file in the repository
 
 jobs:
   build:
@@ -23,19 +23,20 @@ jobs:
 
       - name: Create Library Folder and Create Swift Library
         run: |
-          rm -rf ./ios-tuvali-library
+          rm -rf ./artefacts/swift-artefact/ios-tuvali-library
+          cd ./artefacts/swift-artefact/
           mkdir ios-tuvali-library
-          cd ios-tuvali-library
+          cd ./artefacts/swift-artefact/ios-tuvali-library
           swift package init --type library
           rm -rf /ios-tuvali-library
 
       - name: Edit Package.swift
         run: |
-          cp ./artefacts/tuvali-ios-artefact/Package.swift ./ios-tuvali-library/Package.swift
+          cp ./artefacts/swift-artefact/Package.swift ./artefacts/swift-artefact/ios-tuvali-library/Package.swift
 
       - name: Build Swift Package
         run: |
-          cd ios-tuvali-library
+          cd ./artefacts/swift-artefact/ios-tuvali-library
           swift package clean
           swift package update
           brew install zlib
@@ -43,17 +44,12 @@ jobs:
 
       - name: Move  required files
         run: |
-          cp -R ./ios/Wallet ./ios-tuvali-library/Sources/ios-tuvali-library
-          cp -R ./ios/ble ./ios-tuvali-library/Sources/ios-tuvali-library
-          cp -R ./ios/crypto ./ios-tuvali-library/Sources/ios-tuvali-library
-          cp -R ./ios/common ./ios-tuvali-library/Sources/ios-tuvali-library
-          cd ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/Wallet ./artefacts/swift-artefact/ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/ble ./artefacts/swift-artefact/ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/crypto ./artefacts/swift-artefact/ios-tuvali-library/Sources/ios-tuvali-library
+          cp -R ./ios/common ./artefacts/swift-artefact/ios-tuvali-library/Sources/ios-tuvali-library
+    
 
-      - name: Replace Existing Artifact
-        run: |
-          mkdir -p ./artefacts/tuvali-ios-artefact/
-          cp -R ./ios-tuvali-library ./artefacts/tuvali-ios-artefact/
-          cp ./artefacts/tuvali-ios-artefact/ios-tuvali-library/Package.swift ./artefacts/tuvali-ios-artefact/Package.swift
 
       - name: Configure Git
         run: |
