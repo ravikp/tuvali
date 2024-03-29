@@ -15,6 +15,7 @@
 		9C9A70A72BAAAEB900EF9D0E /* demo_app_tuvaliTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C9A70A62BAAAEB900EF9D0E /* demo_app_tuvaliTests.swift */; };
 		9C9A70B12BAAAEB900EF9D0E /* demo_app_tuvaliUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C9A70B02BAAAEB900EF9D0E /* demo_app_tuvaliUITests.swift */; };
 		9C9A70B32BAAAEB900EF9D0E /* demo_app_tuvaliUITestsLaunchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9C9A70B22BAAAEB900EF9D0E /* demo_app_tuvaliUITestsLaunchTests.swift */; };
+		9CF43DEF2BB6B556008CB8B1 /* ios-tuvali-library in Frameworks */ = {isa = PBXBuildFile; productRef = 9CF43DEE2BB6B556008CB8B1 /* ios-tuvali-library */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -77,6 +78,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9C43FD142BB6AA7C001C5F6F /* ios-tuvali-library in Frameworks */,
+				9CF43DEF2BB6B556008CB8B1 /* ios-tuvali-library in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +175,7 @@
 			name = "demo-app-tuvali";
 			packageProductDependencies = (
 				9C43FD132BB6AA7C001C5F6F /* ios-tuvali-library */,
+				9CF43DEE2BB6B556008CB8B1 /* ios-tuvali-library */,
 			);
 			productName = "demo-app-tuvali";
 			productReference = 9C9A70912BAAAEB600EF9D0E /* demo-app-tuvali.app */;
@@ -248,7 +251,7 @@
 			);
 			mainGroup = 9C9A70882BAAAEB600EF9D0E;
 			packageReferences = (
-				9C43FD122BB6AA7C001C5F6F /* XCLocalSwiftPackageReference "../../artefacts/tuvali-ios-artefact/ios-tuvali-library" */,
+				9CF43DED2BB6B556008CB8B1 /* XCLocalSwiftPackageReference "../../../../ios-tuvali-library" */,
 			);
 			productRefGroup = 9C9A70922BAAAEB600EF9D0E /* Products */;
 			projectDirPath = "";
@@ -643,14 +646,18 @@
 /* End XCConfigurationList section */
 
 /* Begin XCLocalSwiftPackageReference section */
-		9C43FD122BB6AA7C001C5F6F /* XCLocalSwiftPackageReference "../../artefacts/tuvali-ios-artefact/ios-tuvali-library" */ = {
+		9CF43DED2BB6B556008CB8B1 /* XCLocalSwiftPackageReference "../../../../ios-tuvali-library" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = "../../artefacts/tuvali-ios-artefact/ios-tuvali-library";
+			relativePath = "../../../../ios-tuvali-library";
 		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
 		9C43FD132BB6AA7C001C5F6F /* ios-tuvali-library */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = "ios-tuvali-library";
+		};
+		9CF43DEE2BB6B556008CB8B1 /* ios-tuvali-library */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = "ios-tuvali-library";
 		};
