@@ -25,9 +25,8 @@ jobs:
         run: |
           cd ./artefacts/swift-artefact/
           rm -rf ios-tuvali-library
-          cd ./artefacts/swift-artefact/
           mkdir ios-tuvali-library
-          cd ./artefacts/swift-artefact/ios-tuvali-library
+          cd ios-tuvali-library
           swift package init --type library
           rm -rf /ios-tuvali-library
 
