@@ -1,4 +1,4 @@
-name: Android Artifact Build
+name: Android Artefact Build
 
 on:
   push:
@@ -31,13 +31,13 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Build Artifact
+      - name: Build Artefact
         run: |
             cd android
             chmod +x ./gradlew
             ./gradlew assembleDebug
 
-      - name: Replace Existing Artifact
+      - name: Replace Existing Artefact
         run: |
           ls -la ./android/build/outputs/aar/
           mkdir -p ./artefacts/tuvali-android-artefact/
@@ -48,7 +48,7 @@ jobs:
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
 
-      - name: Commit Artifacts
+      - name: Commit Artefacts
         run: |
           git add .
           git commit --allow-empty -m "chore(#890): changes in script"
