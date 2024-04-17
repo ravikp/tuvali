@@ -19,7 +19,7 @@ jobs:
     uses: mosip/kattu/.github/workflows/maven-publish-android.yml@master
     with:
       SERVICE_LOCATION: '.'
-      ANDROID_LOCATION: 'android'
+      ANDROID_SERVICE_LOCATION: 'android'
       BUILD_ARTIFACT: tuvali
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
