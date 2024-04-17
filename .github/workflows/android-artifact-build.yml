@@ -20,7 +20,6 @@ jobs:
     with:
       SERVICE_LOCATION: '.'
       ANDROID_SERVICE_LOCATION: 'android'
-      BUILD_ARTIFACT: tuvali
     secrets:
       OSSRH_USER: ${{ secrets.OSSRH_USER }}
       OSSRH_URL: ${{secrets.OSSRH_URL }}
