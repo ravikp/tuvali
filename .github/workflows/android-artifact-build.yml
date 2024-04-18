@@ -67,15 +67,15 @@ jobs:
           ./gradlew generatePom
           xmlstarlet select -N s="http://maven.apache.org/POM/4.0.0" -t -v "//s:project/s:developers[1]/s:developer/s:name" -nl build/publications/aar/pom-default.xml | grep -icq "Mosip"
 
-      # Skipping the commit plugin step
-      - name: Build check for commit plugin
-        if: false
-        run: echo "Skipping the commit plugin step"
-
-      # Skipping the sign plugin step
-      - name: Build check for sign plugin
-        if: false
-        run: echo "Skipping the sign plugin step"
+#      # Skipping the commit plugin step
+#      - name: Build check for commit plugin
+#        if: false
+#        run: echo "Skipping the commit plugin step"
+#
+#      # Skipping the sign plugin step
+#      - name: Build check for sign plugin
+#        if: false
+#        run: echo "Skipping the sign plugin step"
 
       - name: Validate pom.xml & settings.xml via xmllint
         run: |
