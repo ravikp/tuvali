@@ -43,8 +43,7 @@ jobs:
           echo ${{ env.BRANCH_NAME }}
           echo ${{ env.GPG_TTY }}
           sudo apt-get --yes install gnupg2
-          pwd
-          gpg2 --import ./.github/keys/mosipgpgkey_pub.gpg
+          gpg2 --import tuvali/.github/keys/mosipgpgkey_pub.gpg
           gpg2 --quiet --batch --passphrase=${{secrets.GPG_SECRET}}  --allow-secret-key-import --import ./.github/keys/mosipgpgkey_sec.gpg
 
       - name: Install xmlstartlet and xmllint
