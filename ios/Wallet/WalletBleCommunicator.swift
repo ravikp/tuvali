@@ -107,6 +107,7 @@ class WalletBleCommunicator: NSObject {
         }
         secretTranslator = (cryptoBox.buildSecretsTranslator(verifierPublicKey: verifierPublicKey))
         var nonce = (self.secretTranslator?.getNonce())!
-        central?.writeWithResponse(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: nonce + publicKey)
+        let data = Util.addCrcToData(data: nonce + publicKey)
+        central?.writeWithResponse(serviceUuid: Peripheral.SERVICE_UUID, charUUID: NetworkCharNums.IDENTIFY_REQUEST_CHAR_UUID, data: data)
     }
 }

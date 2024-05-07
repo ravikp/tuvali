@@ -66,6 +66,11 @@ class Util {
       return intValue
     }
 
+    fun addCrcToData( data: ByteArray): ByteArray {
+      val crcValue = CRCValidator.calculate(data)
+      return data + intToNetworkOrderedByteArray(crcValue.toInt(), TwoBytes)
+    }
+
     fun compress(bytes: ByteArray): ByteArray? {
       val out = ByteArrayOutputStream()
       try {

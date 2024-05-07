@@ -9,6 +9,8 @@ import kotlin.math.min
 private const val PAGE_NUMBER_SIZE_IN_BYTES = 2
 private const val CHUNK_SEQUENCE_NUMBER_IN_BYTES = 2
 private const val TYPE_SIZE_IN_BYTES = 1
+private  val CRC_VALUE_IN_BYTES = CRCValidator.getCrcSizeInBytes()
+
 class TransferReport  {
   val type: ReportType
   private val totalPages: Int
@@ -22,7 +24,7 @@ class TransferReport  {
   }
 
   constructor(type: ReportType, missingSequences: IntArray, maxDataBytes: Int) {
-    val transferReportPageSize: Int = (maxDataBytes - PAGE_NUMBER_SIZE_IN_BYTES - TYPE_SIZE_IN_BYTES) / CHUNK_SEQUENCE_NUMBER_IN_BYTES
+    val transferReportPageSize: Int = (maxDataBytes - PAGE_NUMBER_SIZE_IN_BYTES - TYPE_SIZE_IN_BYTES - CRC_VALUE_IN_BYTES) / CHUNK_SEQUENCE_NUMBER_IN_BYTES
     val missedSequenceNumberCount = missingSequences.size
     this.totalPages = ceil(missedSequenceNumberCount.toDouble() / transferReportPageSize).toInt()
     this.type = type

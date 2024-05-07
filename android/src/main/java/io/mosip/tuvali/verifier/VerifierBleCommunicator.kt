@@ -18,11 +18,18 @@ import io.mosip.tuvali.common.events.ConnectedEvent
 import io.mosip.tuvali.common.events.DisconnectedEvent
 import io.mosip.tuvali.common.events.SecureChannelEstablishedEvent
 import io.mosip.tuvali.transfer.ByteCount.FourBytes
+import io.mosip.tuvali.transfer.ByteCount.TwoBytes
+import io.mosip.tuvali.transfer.CRCValidator
 import io.mosip.tuvali.transfer.TransferReportRequest
 import io.mosip.tuvali.transfer.Util
 import io.mosip.tuvali.transfer.Util.Companion.getLogTag
+import io.mosip.tuvali.verifier.characteristics.IdentifyRequestCharacteristic
+import io.mosip.tuvali.verifier.characteristics.ResponseSizeCharacteristic
+import io.mosip.tuvali.verifier.characteristics.SubmitResponseCharacteristic
+import io.mosip.tuvali.verifier.characteristics.TransferReportRequestCharacteristic
 import io.mosip.tuvali.verifier.exception.UnsupportedMTUSizeException
 import io.mosip.tuvali.verifier.exception.VerifierException
+import io.mosip.tuvali.verifier.exception.WalletDataReceivedCrcFailedException
 import io.mosip.tuvali.verifier.transfer.ITransferListener
 import io.mosip.tuvali.verifier.transfer.TransferHandler
 import io.mosip.tuvali.verifier.transfer.message.RemoteRequestedTransferReportMessage
@@ -95,12 +102,14 @@ class VerifierBleCommunicator(
   }
 
   fun notifyVerificationStatus(accepted: Boolean) {
-    if (accepted) {
-      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
-        byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.ACCEPTED.ordinal.toByte()))
+    if(accepted) {
+      val value = byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.ACCEPTED.ordinal.toByte())
+      val data = Util.addCrcToData(value)
+      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID, data)
     } else {
-      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID,
-        byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.REJECTED.ordinal.toByte()))
+      val value = byteArrayOf(io.mosip.tuvali.wallet.transfer.TransferHandler.VerificationStates.REJECTED.ordinal.toByte())
+      val data = Util.addCrcToData(value)
+      peripheral.sendData(SERVICE_UUID, GattService.VERIFICATION_STATUS_CHAR_UUID, data)
     }
   }
 
@@ -121,21 +130,8 @@ class VerifierBleCommunicator(
     when (uuid) {
       GattService.IDENTIFY_REQUEST_CHAR_UUID -> {
         value?.let {
-          // Total size of identity char value will be 12 bytes nonce + 32 bytes pub key
-          if (value.size < 12 + 32) {
-            return
-          }
-          nonce = value.copyOfRange(0, 12)
-          walletPubKey = value.copyOfRange(12, 12 + 32)
-          Log.i(
-            logTag,
-            "received wallet nonce: ${Hex.toHexString(nonce)}, wallet pub key: ${
-              Hex.toHexString(
-                walletPubKey
-              )
-            }"
-          )
-          secretsTranslator = verifierCryptoBox.buildSecretsTranslator(nonce, walletPubKey)
+          val identifyRequestCharacteristic = IdentifyRequestCharacteristic(it)
+          secretsTranslator = verifierCryptoBox.buildSecretsTranslator(identifyRequestCharacteristic.nonce, identifyRequestCharacteristic.publicKey)
           peripheral.enableCommunication()
           peripheral.stopAdvertisement()
           eventEmitter.emitEvent(SecureChannelEstablishedEvent())
@@ -143,10 +139,8 @@ class VerifierBleCommunicator(
       }
       GattService.TRANSFER_REPORT_REQUEST_CHAR_UUID -> {
         value?.let {
-          if (value.isEmpty()) {
-            return
-          }
-          val receivedReportType = value[0].toInt()
+          val transferReportRequestCharacteristic = TransferReportRequestCharacteristic(it)
+          val receivedReportType = transferReportRequestCharacteristic.receivedReportType
           if (receivedReportType == TransferReportRequest.ReportType.RequestReport.ordinal) {
             val remoteRequestedTransferReportMessage =
               RemoteRequestedTransferReportMessage(receivedReportType, maxDataBytes)
@@ -158,16 +152,22 @@ class VerifierBleCommunicator(
       }
       GattService.RESPONSE_SIZE_CHAR_UUID -> {
         value?.let {
-          val responseSize: Int = Util.networkOrderedByteArrayToInt(value, FourBytes)
-          Log.d(logTag, "received response size on characteristic: $responseSize")
-          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSize, maxDataBytes)
+          val responseSizeCharacteristic =  ResponseSizeCharacteristic(it)
+          val responseSizeReadSuccessMessage = ResponseSizeReadSuccessMessage(responseSizeCharacteristic.responseSize, maxDataBytes)
           transferHandler.sendMessage(responseSizeReadSuccessMessage)
         }
       }
       GattService.SUBMIT_RESPONSE_CHAR_UUID -> {
-        if (value != null) {
-          //Log.d(logTag, "received response chunk on characteristic of size: ${value.size}")
-          transferHandler.sendMessage(ResponseChunkReceivedMessage(value))
+        value?.let{
+          try{
+            val submitResponseCharacteristic = SubmitResponseCharacteristic(it)
+            transferHandler.sendMessage(ResponseChunkReceivedMessage(it))
+          }catch(exception: WalletDataReceivedCrcFailedException){
+            Log.e(logTag,
+              "CRC check failed for chunk with sequence number: ${Util.networkOrderedByteArrayToInt(it.copyOfRange(0,2), TwoBytes)}",
+              exception)
+
+          }
         }
       }
     }

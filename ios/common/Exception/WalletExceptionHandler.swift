@@ -3,7 +3,7 @@ import os
 class WalletExceptionHandler {
 
     private var onError: ((_ message: String, _ code: String) -> Void)?
-    
+
     init(error: (@escaping (String, String) -> Void)) {
         self.onError = error
     }
@@ -18,28 +18,34 @@ enum WalletErrorEnum: Error {
     case invalidURIException
     case invalidMTUSizeError(mtu: Int)
     case responseTransferFailure
+    case crcCheckFailedError(characteristic: String)
+
 }
 
 extension WalletErrorEnum: CustomStringConvertible {
     public var description: String {
         switch self {
-        case .invalidURIException:
-            return "Received an invalid URI."
-        case .invalidMTUSizeError(let mtu):
-            return "Negotiated MTU: \(mtu) is too low."
-        case .responseTransferFailure:
-            return "failed to write response"
+            case .invalidURIException:
+                return "Received an invalid URI."
+            case .invalidMTUSizeError(let mtu):
+                return "Negotiated MTU: \(mtu) is too low."
+            case .responseTransferFailure:
+                return "failed to write response"
+            case .crcCheckFailedError(let characteristic):
+                return "CRC check failed for \(characteristic)."
         }
     }
-    
+
     public var code: String {
            switch self {
-           case .invalidURIException:
-               return "TVW_CON_001"
-           case .invalidMTUSizeError( _):
-               return "TVW_CON_002"
-           case .responseTransferFailure:
-               return "TVW_REP_001"
+               case .invalidURIException:
+                   return "TVW_CON_001"
+               case .invalidMTUSizeError( _):
+                   return "TVW_CON_002"
+               case .responseTransferFailure:
+                   return "TVW_REP_001"
+               case .crcCheckFailedError( _):
+                   return "TVW_TRA_001"
            }
        }
 }
